@@ -1,0 +1,60 @@
+[run]
+# Timeout for analysis
+timeout = "5m"
+
+# Include test files
+tests = true
+
+[linters]
+# Enable specific linters
+enable = [
+  "errcheck",      # Check for unchecked errors
+  "gosimple",      # Simplify code
+  "govet",         # Vet examines Go source code
+  "ineffassign",   # Detect ineffectual assignments
+  "staticcheck",   # Go static analysis
+  "unused",        # Check for unused constants, variables, functions and types
+  "gofmt",         # Check whether code was gofmt-ed
+  "goimports",     # Check import statements are formatted
+  "misspell",      # Find commonly misspelled English words
+  "revive",        # Fast, configurable, extensible, flexible, and beautiful linter for Go
+  "gosec",         # Security problems
+  "bodyclose",     # Check HTTP response body is closed
+  "unconvert",     # Remove unnecessary type conversions
+]
+
+[linters-settings.errcheck]
+# Report about not checking errors in type assertions: `a := b.(MyStruct)`
+check-type-assertions = true
+
+# Report about assignment of errors to blank identifier: `num, _ := strconv.Atoi(numStr)`
+check-blank = false
+
+[linters-settings.gofmt]
+# Simplify code: gofmt with `-s` option
+simplify = true
+
+[linters-settings.revive]
+# Minimal confidence for issues
+confidence = 0.8
+
+[linters-settings.gosec]
+# To select a subset of rules to run
+excludes = []
+
+[issues]
+# Maximum issues count per one linter
+max-issues-per-linter = 0
+
+# Maximum count of issues with the same text
+max-same-issues = 0
+
+# Exclude vendor directory
+exclude-dirs = [
+  "vendor",
+]
+
+# Exclude some linters from running on tests files
+exclude-rules = [
+  { path = "_test\\.go", linters = ["gosec", "errcheck"] },
+]

@@ -1,0 +1,41 @@
+# .pre-commit-config.yaml
+repos:
+  # -------------------- BACKEND (Go) --------------------
+  - repo: local
+    hooks:
+      - id: go-fmt-backend
+        name: gofmt (backend)
+        entry: bash -lc 'cd backend && gofmt -w .'
+        language: system
+        files: ^backend/.*\.go$
+
+      - id: go-vet-backend
+        name: go vet (backend)
+        entry: bash -lc 'cd backend && go vet ./...'
+        language: system
+        files: ^backend/.*\.go$
+
+      - id: golangci-lint-backend
+        name: golangci-lint (backend)
+        entry: bash -lc 'cd backend && golangci-lint run --allow-parallel-runners'
+        language: system
+        files: ^backend/.*\.go$
+
+  # -------------------- FRONTEND (React/TS) --------------------
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v10.0.0-rc.2
+    hooks:
+      - id: eslint
+        files: ^frontend/.*\.(js|ts|tsx|jsx)$
+        args: ["--fix"]
+
+  # -------------------- COMMIT MESSAGE LINT --------------------
+  - repo: local
+    hooks:
+      - id: commitlint
+        name: commitlint
+        entry: commitlint --edit
+        language: node
+        stages: [commit-msg]
+        additional_dependencies:
+          ["@commitlint/cli", "@commitlint/config-conventional"]
