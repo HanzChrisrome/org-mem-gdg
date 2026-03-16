@@ -19,15 +19,27 @@ func NewAuthHandler(authService *services.AuthService) *AuthHandler {
 	return &AuthHandler{authService: authService}
 }
 
-type refreshRequest struct {
+type RefreshRequest struct {
 	SessionID    string `json:"session_id"`
 	RefreshToken string `json:"refresh_token"`
 }
 
-type logoutRequest struct {
+type LogoutRequest struct {
 	SessionID string `json:"session_id"`
 }
 
+// Register godoc
+// @Summary Register member
+// @Description Create a new member account.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body config.RegisterRequest true "Register payload"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 409 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req config.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -46,6 +58,18 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	})
 }
 
+// Login godoc
+// @Summary Login
+// @Description Authenticate a member and return a token pair.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body config.LoginRequest true "Login payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req config.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -68,8 +92,21 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	})
 }
 
+// Refresh godoc
+// @Summary Refresh access token
+// @Description Refresh an access token using session_id and refresh_token.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body RefreshRequest true "Refresh payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/refresh [post]
 func (h *AuthHandler) Refresh(c *gin.Context) {
-	var req refreshRequest
+	var req RefreshRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return
@@ -92,8 +129,20 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 	})
 }
 
+// Logout godoc
+// @Summary Logout
+// @Description Revoke an active session.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body LogoutRequest true "Logout payload"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
-	var req logoutRequest
+	var req LogoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return

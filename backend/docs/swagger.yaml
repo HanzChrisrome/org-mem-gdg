@@ -1,0 +1,224 @@
+basePath: /
+definitions:
+  config.LoginRequest:
+    properties:
+      identifier:
+        description: Email or StudentID
+        type: string
+      password:
+        type: string
+    type: object
+  config.RegisterRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      student_id:
+        type: string
+    type: object
+  handlers.LogoutRequest:
+    properties:
+      session_id:
+        type: string
+    type: object
+  handlers.RefreshRequest:
+    properties:
+      refresh_token:
+        type: string
+      session_id:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: API documentation for org-mem-gdg backend
+  title: Org Mem GDG API
+  version: "1.0"
+paths:
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a member and return a token pair.
+      parameters:
+      - description: Login payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/config.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login
+      tags:
+      - Auth
+  /api/logout:
+    post:
+      consumes:
+      - application/json
+      description: Revoke an active session.
+      parameters:
+      - description: Logout payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LogoutRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Logout
+      tags:
+      - Auth
+  /api/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh an access token using session_id and refresh_token.
+      parameters:
+      - description: Refresh payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Refresh access token
+      tags:
+      - Auth
+  /api/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new member account.
+      parameters:
+      - description: Register payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/config.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register member
+      tags:
+      - Auth
+  /health:
+    get:
+      description: Returns API liveness status.
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Health check
+      tags:
+      - Health
+swagger: "2.0"
