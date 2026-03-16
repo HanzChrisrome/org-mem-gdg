@@ -47,6 +47,6 @@ setup:
 install-tools:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	go install golang.org/x/tools/cmd/goimports@latest
-	pre-commit install
-	pre-commit install --hook-type commit-msg
+	-pre-commit install
+	-pre-commit install --hook-type commit-msg
 	cd frontend && npm install --save-dev prettier eslint

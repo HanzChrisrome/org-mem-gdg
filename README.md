@@ -68,7 +68,7 @@ Install the following first:
 ### 2. Clone and Enter Project
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/HanzChrisrome/org-mem-gdg.git
 cd org-man-app
 ```
 

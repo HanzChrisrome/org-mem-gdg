@@ -152,6 +152,8 @@
 - **RolePermissions:** role_id (FK → Roles.role_id), permission_id (FK → Permissions.permission_id)
 - **Payments:** payment_id, member_id (FK → Members.member_id), payment_proof_image, payment_status, submission_date, approval_date, approved_by (FK → Executives.executive_id)
 - **Audit Log:** audit_id, actor_id, actor_role, action, entity_type, entity_id, details, timestamp
+- **Sessions:** session_id, owner_id (FK -> Members.member_id OR Executives.executive_id), owner_type (member/executive), refresh_token_hash, user_agent, ip_address, expires_at, created_at, revoked_at
+
 
 ## 8. Technical Design
 
