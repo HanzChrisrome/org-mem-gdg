@@ -9,7 +9,7 @@ dev:
 
 # === BACKEND ===
 backend-run:
-	cd backend && go build -o main.exe cmd/api/main.go && ./main.exe
+	cd backend && go run cmd/api/main.go
 
 backend-lint:
 	cd backend && golangci-lint run

@@ -14,6 +14,7 @@ import (
 	"github.com/HanzChrisrome/org-man-app/internal/routes"
 	"github.com/HanzChrisrome/org-man-app/internal/services"
 	"github.com/HanzChrisrome/org-man-app/internal/utils"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -39,16 +40,20 @@ func main() {
 
 	log.Println("Connected to:", version)
 
-	mux := http.NewServeMux()
+	router := gin.Default()
+
+	// Add CORS middleware
+	router.Use(middleware.CORS())
+
 	healthHandler := handlers.NewHealthHandler()
 	authHandler := handlers.NewAuthHandler(authService)
-	routes.Register(mux, healthHandler, authHandler)
+	routes.Register(router, healthHandler, authHandler)
 
 	log.Printf("Server running on :%s", cfg.Port)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
-		Handler:      middleware.CORS(mux),
+		Handler:      router,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,

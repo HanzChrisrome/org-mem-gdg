@@ -1,16 +1,18 @@
 package routes
 
 import (
-	"net/http"
-
 	"github.com/HanzChrisrome/org-man-app/internal/handlers"
+	"github.com/gin-gonic/gin"
 )
 
-func Register(mux *http.ServeMux, healthHandler *handlers.HealthHandler, authHandler *handlers.AuthHandler) {
-	mux.HandleFunc("/health", healthHandler.Health)
+func Register(router *gin.Engine, healthHandler *handlers.HealthHandler, authHandler *handlers.AuthHandler) {
+	router.GET("/health", healthHandler.Health)
 
-	mux.HandleFunc("/api/register", authHandler.Register)
-	mux.HandleFunc("/api/login", authHandler.Login)
-	mux.HandleFunc("/api/refresh", authHandler.Refresh)
-	mux.HandleFunc("/api/logout", authHandler.Logout)
+	api := router.Group("/api")
+	{
+		api.POST("/register", authHandler.Register)
+		api.POST("/login", authHandler.Login)
+		api.POST("/refresh", authHandler.Refresh)
+		api.POST("/logout", authHandler.Logout)
+	}
 }

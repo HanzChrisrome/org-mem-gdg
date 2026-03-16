@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -9,6 +8,7 @@ import (
 
 	"github.com/HanzChrisrome/org-man-app/internal/config"
 	"github.com/HanzChrisrome/org-man-app/internal/services"
+	"github.com/gin-gonic/gin"
 )
 
 type AuthHandler struct {
@@ -28,108 +28,88 @@ type logoutRequest struct {
 	SessionID string `json:"session_id"`
 }
 
-func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		writeJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
-		return
-	}
-
+func (h *AuthHandler) Register(c *gin.Context) {
 	var req config.RegisterRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSONError(w, http.StatusBadRequest, "invalid request body")
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return
 	}
 
-	user, err := h.authService.RegisterMember(r.Context(), req)
+	user, err := h.authService.RegisterMember(c.Request.Context(), req)
 	if err != nil {
-		handleAuthError(w, err)
+		handleAuthError(c, err)
 		return
 	}
 
-	writeJSON(w, http.StatusCreated, map[string]any{
+	c.JSON(http.StatusCreated, gin.H{
 		"user": user,
 	})
 }
 
-func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		writeJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
-		return
-	}
-
+func (h *AuthHandler) Login(c *gin.Context) {
 	var req config.LoginRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSONError(w, http.StatusBadRequest, "invalid request body")
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return
 	}
 
-	userAgent := r.UserAgent()
-	ip := r.RemoteAddr
+	userAgent := c.Request.UserAgent()
+	ip := c.ClientIP()
 
-	user, tokenPair, err := h.authService.LoginWithToken(r.Context(), req, userAgent, ip)
+	user, tokenPair, err := h.authService.LoginWithToken(c.Request.Context(), req, userAgent, ip)
 	if err != nil {
-		handleAuthError(w, err)
+		handleAuthError(c, err)
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]any{
+	c.JSON(http.StatusOK, gin.H{
 		"user":  user,
 		"token": tokenPair,
 	})
 }
 
-func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		writeJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
-		return
-	}
-
+func (h *AuthHandler) Refresh(c *gin.Context) {
 	var req refreshRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSONError(w, http.StatusBadRequest, "invalid request body")
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return
 	}
 
 	sessionID, refreshToken := normalizeRefreshInput(req.SessionID, req.RefreshToken)
 	if sessionID == "" || refreshToken == "" {
-		writeJSONError(w, http.StatusBadRequest, "session_id and refresh_token are required")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "session_id and refresh_token are required"})
 		return
 	}
 
-	tokenPair, err := h.authService.RefreshAccessToken(r.Context(), sessionID, refreshToken)
+	tokenPair, err := h.authService.RefreshAccessToken(c.Request.Context(), sessionID, refreshToken)
 	if err != nil {
-		handleAuthError(w, err)
+		handleAuthError(c, err)
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]any{
+	c.JSON(http.StatusOK, gin.H{
 		"token": tokenPair,
 	})
 }
 
-func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		writeJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
-		return
-	}
-
+func (h *AuthHandler) Logout(c *gin.Context) {
 	var req logoutRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSONError(w, http.StatusBadRequest, "invalid request body")
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return
 	}
 
 	if req.SessionID == "" {
-		writeJSONError(w, http.StatusBadRequest, "session_id is required")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "session_id is required"})
 		return
 	}
 
-	if err := h.authService.Logout(r.Context(), req.SessionID); err != nil {
-		handleAuthError(w, err)
+	if err := h.authService.Logout(c.Request.Context(), req.SessionID); err != nil {
+		handleAuthError(c, err)
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]string{"message": "logged out"})
+	c.JSON(http.StatusOK, gin.H{"message": "logged out"})
 }
 
 func normalizeRefreshInput(sessionID, refreshToken string) (string, string) {
@@ -148,33 +128,23 @@ func normalizeRefreshInput(sessionID, refreshToken string) (string, string) {
 	return parts[0], parts[1]
 }
 
-func handleAuthError(w http.ResponseWriter, err error) {
+func handleAuthError(c *gin.Context, err error) {
 	switch {
 	case errors.Is(err, config.ErrInvalidCredentials):
-		writeJSONError(w, http.StatusUnauthorized, config.ErrInvalidCredentials.Error())
+		c.JSON(http.StatusUnauthorized, gin.H{"error": config.ErrInvalidCredentials.Error()})
 	case errors.Is(err, config.ErrWeakPassword), errors.Is(err, config.ErrInvalidInput):
-		writeJSONError(w, http.StatusBadRequest, err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	case errors.Is(err, config.ErrUserAlreadyExists):
-		writeJSONError(w, http.StatusConflict, config.ErrUserAlreadyExists.Error())
+		c.JSON(http.StatusConflict, gin.H{"error": config.ErrUserAlreadyExists.Error()})
 	case errors.Is(err, config.ErrSessionNotFound):
-		writeJSONError(w, http.StatusNotFound, config.ErrSessionNotFound.Error())
+		c.JSON(http.StatusNotFound, gin.H{"error": config.ErrSessionNotFound.Error()})
 	case errors.Is(err, config.ErrSessionExpired), errors.Is(err, config.ErrInvalidToken):
-		writeJSONError(w, http.StatusUnauthorized, err.Error())
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 	case errors.Is(err, config.ErrInternal):
 		log.Printf("Internal Server Error: %v", err)
-		writeJSONError(w, http.StatusInternalServerError, config.ErrInternal.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": config.ErrInternal.Error()})
 	default:
 		log.Printf("Internal Server Error: %v", err)
-		writeJSONError(w, http.StatusInternalServerError, config.ErrInternal.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": config.ErrInternal.Error()})
 	}
-}
-
-func writeJSONError(w http.ResponseWriter, status int, message string) {
-	writeJSON(w, status, map[string]string{"error": message})
-}
-
-func writeJSON(w http.ResponseWriter, status int, payload any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(payload)
 }
