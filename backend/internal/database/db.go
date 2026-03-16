@@ -3,12 +3,16 @@ package database
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 )
 
 func NewConnection(databaseURL string) *pgx.Conn {
-	conn, err := pgx.Connect(context.Background(), databaseURL)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	conn, err := pgx.Connect(ctx, databaseURL)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
