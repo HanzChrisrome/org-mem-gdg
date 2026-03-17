@@ -163,6 +163,33 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "logged out"})
 }
 
+// RevokeSession godoc
+// @Summary Revoke session
+// @Description Revoke a session via workspace or admin action.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param id path string true "Session ID"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/sessions/{id}/revoke [post]
+func (h *AuthHandler) RevokeSession(c *gin.Context) {
+	sessionID := c.Param("id")
+	if sessionID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "session_id is required"})
+		return
+	}
+
+	if err := h.authService.RevokeSession(c.Request.Context(), sessionID); err != nil {
+		handleAuthError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "session revoked"})
+}
+
 func normalizeRefreshInput(sessionID, refreshToken string) (string, string) {
 	if sessionID != "" {
 		parts := strings.SplitN(refreshToken, ".", 2)

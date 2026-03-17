@@ -235,6 +235,14 @@ func (s *AuthService) Logout(ctx context.Context, sessionID string) error {
 	return s.sessionRepo.Revoke(ctx, sessionID, time.Now().UTC())
 }
 
+func (s *AuthService) RevokeSession(ctx context.Context, sessionID string) error {
+	if sessionID == "" {
+		return config.ErrInvalidInput
+	}
+
+	return s.sessionRepo.Revoke(ctx, sessionID, time.Now().UTC())
+}
+
 func generateRandomToken(size int) (string, error) {
 	if size <= 0 {
 		return "", config.ErrInvalidInput

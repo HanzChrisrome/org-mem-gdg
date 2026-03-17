@@ -35,7 +35,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/config.Executive"
+                                "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive"
                             }
                         }
                     },
@@ -73,7 +73,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/config.CreateExecutiveRequest"
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.CreateExecutiveRequest"
                         }
                     }
                 ],
@@ -81,7 +81,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/config.Executive"
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive"
                         }
                     },
                     "400": {
@@ -141,7 +141,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/config.Executive"
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive"
                         }
                     },
                     "404": {
@@ -194,7 +194,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/config.UpdateExecutiveRequest"
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.UpdateExecutiveRequest"
                         }
                     }
                 ],
@@ -202,7 +202,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/config.Executive"
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive"
                         }
                     },
                     "400": {
@@ -316,7 +316,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/config.LoginRequest"
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.LoginRequest"
                         }
                     }
                 ],
@@ -378,7 +378,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.LogoutRequest"
+                            "$ref": "#/definitions/internal_handlers.LogoutRequest"
                         }
                     }
                 ],
@@ -456,7 +456,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/config.MemberWithPayment"
+                                "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.MemberWithPayment"
                             }
                         }
                     }
@@ -485,7 +485,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/config.RegisterRequest"
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.RegisterRequest"
                         }
                     }
                 ],
@@ -493,7 +493,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/config.Member"
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Member"
                         }
                     }
                 }
@@ -526,7 +526,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/config.Member"
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Member"
                         }
                     }
                 }
@@ -561,7 +561,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/config.UpdateMemberRequest"
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.UpdateMemberRequest"
                         }
                     }
                 ],
@@ -569,7 +569,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/config.Member"
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Member"
                         }
                     }
                 }
@@ -629,7 +629,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.RefreshRequest"
+                            "$ref": "#/definitions/internal_handlers.RefreshRequest"
                         }
                     }
                 ],
@@ -700,7 +700,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/config.RegisterRequest"
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.RegisterRequest"
                         }
                     }
                 ],
@@ -742,6 +742,68 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/sessions/{id}/revoke": {
+            "post": {
+                "description": "Revoke a session via workspace or admin action.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Revoke session",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Returns API liveness status.",
@@ -764,7 +826,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "config.CreateExecutiveRequest": {
+        "github_com_HanzChrisrome_org-man-app_internal_config.CreateExecutiveRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -790,7 +852,7 @@ const docTemplate = `{
                 }
             }
         },
-        "config.Executive": {
+        "github_com_HanzChrisrome_org-man-app_internal_config.Executive": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -816,7 +878,7 @@ const docTemplate = `{
                 }
             }
         },
-        "config.LoginRequest": {
+        "github_com_HanzChrisrome_org-man-app_internal_config.LoginRequest": {
             "type": "object",
             "properties": {
                 "identifier": {
@@ -828,7 +890,7 @@ const docTemplate = `{
                 }
             }
         },
-        "config.Member": {
+        "github_com_HanzChrisrome_org-man-app_internal_config.Member": {
             "type": "object",
             "properties": {
                 "contact_number": {
@@ -860,7 +922,7 @@ const docTemplate = `{
                 }
             }
         },
-        "config.MemberWithPayment": {
+        "github_com_HanzChrisrome_org-man-app_internal_config.MemberWithPayment": {
             "type": "object",
             "properties": {
                 "approver_name": {
@@ -907,7 +969,7 @@ const docTemplate = `{
                 }
             }
         },
-        "config.RegisterRequest": {
+        "github_com_HanzChrisrome_org-man-app_internal_config.RegisterRequest": {
             "type": "object",
             "required": [
                 "source_dashboard"
@@ -931,7 +993,7 @@ const docTemplate = `{
                 }
             }
         },
-        "config.UpdateExecutiveRequest": {
+        "github_com_HanzChrisrome_org-man-app_internal_config.UpdateExecutiveRequest": {
             "type": "object",
             "properties": {
                 "email": {
@@ -951,7 +1013,7 @@ const docTemplate = `{
                 }
             }
         },
-        "config.UpdateMemberRequest": {
+        "github_com_HanzChrisrome_org-man-app_internal_config.UpdateMemberRequest": {
             "type": "object",
             "properties": {
                 "contact_number": {
@@ -974,7 +1036,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.LogoutRequest": {
+        "internal_handlers.LogoutRequest": {
             "type": "object",
             "properties": {
                 "session_id": {
@@ -982,7 +1044,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.RefreshRequest": {
+        "internal_handlers.RefreshRequest": {
             "type": "object",
             "properties": {
                 "refresh_token": {

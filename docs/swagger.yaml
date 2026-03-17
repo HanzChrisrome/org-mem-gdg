@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  config.CreateExecutiveRequest:
+  github_com_HanzChrisrome_org-man-app_internal_config.CreateExecutiveRequest:
     properties:
       email:
         type: string
@@ -18,7 +18,7 @@ definitions:
     - password
     - student_id
     type: object
-  config.Executive:
+  github_com_HanzChrisrome_org-man-app_internal_config.Executive:
     properties:
       created_at:
         type: string
@@ -35,7 +35,7 @@ definitions:
       student_id:
         type: string
     type: object
-  config.LoginRequest:
+  github_com_HanzChrisrome_org-man-app_internal_config.LoginRequest:
     properties:
       identifier:
         description: Email or StudentID
@@ -43,7 +43,7 @@ definitions:
       password:
         type: string
     type: object
-  config.Member:
+  github_com_HanzChrisrome_org-man-app_internal_config.Member:
     properties:
       contact_number:
         type: string
@@ -64,7 +64,7 @@ definitions:
       student_id:
         type: string
     type: object
-  config.MemberWithPayment:
+  github_com_HanzChrisrome_org-man-app_internal_config.MemberWithPayment:
     properties:
       approver_name:
         type: string
@@ -95,7 +95,7 @@ definitions:
       student_id:
         type: string
     type: object
-  config.RegisterRequest:
+  github_com_HanzChrisrome_org-man-app_internal_config.RegisterRequest:
     properties:
       email:
         type: string
@@ -111,7 +111,7 @@ definitions:
     required:
     - source_dashboard
     type: object
-  config.UpdateExecutiveRequest:
+  github_com_HanzChrisrome_org-man-app_internal_config.UpdateExecutiveRequest:
     properties:
       email:
         type: string
@@ -124,7 +124,7 @@ definitions:
       student_id:
         type: string
     type: object
-  config.UpdateMemberRequest:
+  github_com_HanzChrisrome_org-man-app_internal_config.UpdateMemberRequest:
     properties:
       contact_number:
         type: string
@@ -139,12 +139,12 @@ definitions:
       student_id:
         type: string
     type: object
-  handlers.LogoutRequest:
+  internal_handlers.LogoutRequest:
     properties:
       session_id:
         type: string
     type: object
-  handlers.RefreshRequest:
+  internal_handlers.RefreshRequest:
     properties:
       refresh_token:
         type: string
@@ -166,7 +166,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/config.Executive'
+              $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive'
             type: array
         "500":
           description: Internal Server Error
@@ -188,14 +188,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/config.CreateExecutiveRequest'
+          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.CreateExecutiveRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/config.Executive'
+            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive'
         "400":
           description: Bad Request
           schema:
@@ -266,7 +266,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/config.Executive'
+            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive'
         "404":
           description: Not Found
           schema:
@@ -298,14 +298,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/config.UpdateExecutiveRequest'
+          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.UpdateExecutiveRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/config.Executive'
+            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive'
         "400":
           description: Bad Request
           schema:
@@ -347,7 +347,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/config.LoginRequest'
+          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.LoginRequest'
       produces:
       - application/json
       responses:
@@ -388,7 +388,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.LogoutRequest'
+          $ref: '#/definitions/internal_handlers.LogoutRequest'
       produces:
       - application/json
       responses:
@@ -437,7 +437,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/config.MemberWithPayment'
+              $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.MemberWithPayment'
             type: array
       security:
       - BearerAuth: []
@@ -453,14 +453,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/config.RegisterRequest'
+          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.RegisterRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/config.Member'
+            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Member'
       security:
       - BearerAuth: []
       summary: Create member (Executive only)
@@ -501,7 +501,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/config.Member'
+            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Member'
       security:
       - BearerAuth: []
       summary: Get member detail (Executive only)
@@ -521,14 +521,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/config.UpdateMemberRequest'
+          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.UpdateMemberRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/config.Member'
+            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Member'
       security:
       - BearerAuth: []
       summary: Update member (Executive only)
@@ -545,7 +545,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.RefreshRequest'
+          $ref: '#/definitions/internal_handlers.RefreshRequest'
       produces:
       - application/json
       responses:
@@ -592,7 +592,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/config.RegisterRequest'
+          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.RegisterRequest'
       produces:
       - application/json
       responses:
@@ -620,6 +620,47 @@ paths:
               type: string
             type: object
       summary: Register
+      tags:
+      - Auth
+  /api/sessions/{id}/revoke:
+    post:
+      consumes:
+      - application/json
+      description: Revoke a session via workspace or admin action.
+      parameters:
+      - description: Session ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Revoke session
       tags:
       - Auth
   /health:

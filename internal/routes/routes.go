@@ -22,6 +22,7 @@ func Register(router *gin.Engine, healthHandler *handlers.HealthHandler, authHan
 		protected.Use(middleware.Auth(jwtManager, sessionRepo))
 		{
 			protected.POST("/logout", authHandler.Logout)
+			protected.POST("/sessions/:id/revoke", authHandler.RevokeSession)
 
 			// Member management (Executives only)
 			members := protected.Group("/members")
