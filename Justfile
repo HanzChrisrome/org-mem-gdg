@@ -36,6 +36,11 @@ frontend-check:
 	just frontend-lint
 	just frontend-format
 
+# === DOCS ===
+backend-swagger:
+	go install github.com/swaggo/swag/cmd/swag@latest
+	cd backend && swag init -g cmd/api/main.go --parseDependency --parseInternal
+
 # === SETUP ===
 setup:
 	just install-tools

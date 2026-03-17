@@ -2,7 +2,8 @@
 -- Description: Standardize sessions table to support both members and executives
 
 CREATE TABLE IF NOT EXISTS sessions (
-    session_id VARCHAR(64) PRIMARY KEY,
+    session_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    refresh_token_id VARCHAR(64) NOT NULL UNIQUE,
     owner_id VARCHAR(255) NOT NULL, -- UUID or string depending on source
     owner_type VARCHAR(20) NOT NULL CHECK (owner_type IN ('member', 'executive')),
     refresh_token_hash VARCHAR(64) NOT NULL,
@@ -16,5 +17,6 @@ CREATE TABLE IF NOT EXISTS sessions (
     CONSTRAINT idx_sessions_owner UNIQUE(owner_id, owner_type, created_at)
 );
 
+CREATE INDEX IF NOT EXISTS idx_sessions_refresh_token_lookup ON sessions (refresh_token_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_owner_lookup ON sessions (owner_id, owner_type);
 CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions (expires_at);

@@ -20,12 +20,12 @@ func NewAuthHandler(authService *services.AuthService) *AuthHandler {
 }
 
 type RefreshRequest struct {
-	SessionID    string `json:"session_id"`
-	RefreshToken string `json:"refresh_token"`
+	RefreshTokenID string `json:"refresh_token_id"`
+	RefreshToken   string `json:"refresh_token"`
 }
 
 type LogoutRequest struct {
-	SessionID string `json:"session_id"`
+	RefreshTokenID string `json:"refresh_token_id"`
 }
 
 // Register godoc
@@ -34,11 +34,11 @@ type LogoutRequest struct {
 // @Tags Auth
 // @Accept json
 // @Produce json
-// @Param request body config.RegisterRequest true "Register payload"
-// @Success 201 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
-// @Failure 409 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Param request body RegisterRequestDoc true "Register payload"
+// @Success 201 {object} RegisterResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 409 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req config.RegisterRequest
@@ -65,11 +65,11 @@ func (h *AuthHandler) Register(c *gin.Context) {
 // @Tags Auth
 // @Accept json
 // @Produce json
-// @Param request body config.LoginRequest true "Login payload"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
-// @Failure 401 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Param request body LoginRequestDoc true "Login payload"
+// @Success 200 {object} LoginResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req config.LoginRequest
@@ -96,16 +96,16 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 // Refresh godoc
 // @Summary Refresh access token
-// @Description Refresh an access token using session_id and refresh_token.
+// @Description Refresh an access token using refresh_token_id and refresh_token.
 // @Tags Auth
 // @Accept json
 // @Produce json
 // @Param request body RefreshRequest true "Refresh payload"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
-// @Failure 401 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Success 200 {object} RefreshResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/refresh [post]
 func (h *AuthHandler) Refresh(c *gin.Context) {
 	var req RefreshRequest
@@ -114,13 +114,13 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 		return
 	}
 
-	sessionID, refreshToken := normalizeRefreshInput(req.SessionID, req.RefreshToken)
-	if sessionID == "" || refreshToken == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "session_id and refresh_token are required"})
+	refreshTokenID, refreshTokenSecret := normalizeRefreshInput(req.RefreshTokenID, req.RefreshToken)
+	if refreshTokenID == "" || refreshTokenSecret == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "refresh_token_id and refresh_token are required"})
 		return
 	}
 
-	tokenPair, err := h.authService.RefreshAccessToken(c.Request.Context(), sessionID, refreshToken)
+	tokenPair, err := h.authService.RefreshAccessToken(c.Request.Context(), refreshTokenID, refreshTokenSecret)
 	if err != nil {
 		handleAuthError(c, err)
 		return
@@ -138,10 +138,10 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body LogoutRequest true "Logout payload"
-// @Success 200 {object} map[string]string
-// @Failure 400 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Success 200 {object} MessageResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
 	var req LogoutRequest
@@ -150,12 +150,12 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		return
 	}
 
-	if req.SessionID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "session_id is required"})
+	if req.RefreshTokenID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "refresh_token_id is required"})
 		return
 	}
 
-	if err := h.authService.Logout(c.Request.Context(), req.SessionID); err != nil {
+	if err := h.authService.Logout(c.Request.Context(), req.RefreshTokenID); err != nil {
 		handleAuthError(c, err)
 		return
 	}
@@ -169,20 +169,20 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 // @Tags Auth
 // @Accept json
 // @Produce json
-// @Param id path string true "Session ID"
-// @Success 200 {object} map[string]string
-// @Failure 400 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Param id path string true "Refresh Token ID"
+// @Success 200 {object} MessageResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/sessions/{id}/revoke [post]
 func (h *AuthHandler) RevokeSession(c *gin.Context) {
-	sessionID := c.Param("id")
-	if sessionID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "session_id is required"})
+	refreshTokenID := c.Param("id")
+	if refreshTokenID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "refresh_token_id is required"})
 		return
 	}
 
-	if err := h.authService.RevokeSession(c.Request.Context(), sessionID); err != nil {
+	if err := h.authService.RevokeSession(c.Request.Context(), refreshTokenID); err != nil {
 		handleAuthError(c, err)
 		return
 	}
@@ -190,13 +190,13 @@ func (h *AuthHandler) RevokeSession(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "session revoked"})
 }
 
-func normalizeRefreshInput(sessionID, refreshToken string) (string, string) {
-	if sessionID != "" {
+func normalizeRefreshInput(refreshTokenID, refreshToken string) (string, string) {
+	if refreshTokenID != "" {
 		parts := strings.SplitN(refreshToken, ".", 2)
 		if len(parts) == 2 {
-			return sessionID, parts[1]
+			return refreshTokenID, parts[1]
 		}
-		return sessionID, refreshToken
+		return refreshTokenID, refreshToken
 	}
 
 	parts := strings.SplitN(refreshToken, ".", 2)

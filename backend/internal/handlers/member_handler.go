@@ -23,8 +23,12 @@ func NewMemberHandler(memberService *services.MemberService) *MemberHandler {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body config.RegisterRequest true "Create payload"
-// @Success 201 {object} config.Member
+// @Param request body RegisterRequestDoc true "Create payload"
+// @Success 201 {object} MemberResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 409 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/members [post]
 func (h *MemberHandler) CreateMember(c *gin.Context) {
 	var req config.RegisterRequest
@@ -49,7 +53,9 @@ func (h *MemberHandler) CreateMember(c *gin.Context) {
 // @Security BearerAuth
 // @Param q query string false "Search name/student_id"
 // @Param status query string false "Filter by registration status"
-// @Success 200 {array} config.MemberWithPayment
+// @Success 200 {array} MemberWithPaymentResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/members [get]
 func (h *MemberHandler) ListMembers(c *gin.Context) {
 	query := c.Query("q")
@@ -70,7 +76,10 @@ func (h *MemberHandler) ListMembers(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path string true "Member ID"
-// @Success 200 {object} config.Member
+// @Success 200 {object} MemberResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/members/{id} [get]
 func (h *MemberHandler) GetMemberByID(c *gin.Context) {
 	id := c.Param("id")
@@ -91,8 +100,12 @@ func (h *MemberHandler) GetMemberByID(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path string true "Member ID"
-// @Param request body config.UpdateMemberRequest true "Update payload"
-// @Success 200 {object} config.Member
+// @Param request body UpdateMemberRequestDoc true "Update payload"
+// @Success 200 {object} MemberResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/members/{id} [put]
 func (h *MemberHandler) UpdateMember(c *gin.Context) {
 	id := c.Param("id")
@@ -117,7 +130,10 @@ func (h *MemberHandler) UpdateMember(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path string true "Member ID"
-// @Success 200 {object} map[string]string
+// @Success 200 {object} MessageResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/members/{id} [delete]
 func (h *MemberHandler) DeleteMember(c *gin.Context) {
 	id := c.Param("id")
@@ -131,6 +147,11 @@ func (h *MemberHandler) DeleteMember(c *gin.Context) {
 }
 
 func handleMemberError(c *gin.Context, err error) {
+	if err != nil {
+		// Log the actual error for debugging
+		println("DEBUG [MemberHandler Error]:", err.Error())
+	}
+
 	if errors.Is(err, config.ErrUserNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "member not found"})
 		return

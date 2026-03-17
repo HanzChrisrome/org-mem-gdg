@@ -1,6 +1,5 @@
 -- Sequence and defined type
 CREATE SEQUENCE IF NOT EXISTS roles_role_id_seq;
-CREATE SEQUENCE IF NOT EXISTS executives_executive_id_seq;
 CREATE SEQUENCE IF NOT EXISTS permissions_permission_id_seq;
 CREATE SEQUENCE IF NOT EXISTS payments_payment_id_seq;
 CREATE SEQUENCE IF NOT EXISTS audit_log_audit_id_seq;
@@ -23,7 +22,7 @@ CREATE UNIQUE INDEX roles_role_name_key ON public.roles USING btree (role_name);
 DROP TABLE IF EXISTS "public"."executives";
 -- Table Definition
 CREATE TABLE "public"."executives" (
-    "executive_id" int4 NOT NULL DEFAULT nextval('executives_executive_id_seq'::regclass),
+    "executive_id" int4 NOT NULL,
     "name" varchar(150) NOT NULL,
     "email" varchar(150) NOT NULL,
     "student_id" varchar(50) NOT NULL,
@@ -32,6 +31,7 @@ CREATE TABLE "public"."executives" (
     "role_id" int4,
     "created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
     "last_updated" timestamp DEFAULT CURRENT_TIMESTAMP,
+    "password_hash" varchar(60) NOT NULL,
     CONSTRAINT "executives_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "public"."roles"("role_id") ON DELETE SET NULL,
     PRIMARY KEY ("executive_id")
 );
@@ -121,8 +121,7 @@ CREATE UNIQUE INDEX members_student_id_key ON public.members USING btree (studen
 DROP TABLE IF EXISTS "public"."sessions";
 -- Table Definition
 CREATE TABLE "public"."sessions" (
-    "session_id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    "refresh_token_id" varchar(64) NOT NULL UNIQUE,
+    "session_id" text NOT NULL,
     "refresh_token_hash" varchar(64),
     "user_agent" text,
     "ip_address" text,
@@ -135,11 +134,10 @@ CREATE TABLE "public"."sessions" (
 
 
 -- Indices
-CREATE INDEX IF NOT EXISTS idx_sessions_refresh_token_lookup ON public.sessions (refresh_token_id);
-CREATE INDEX IF NOT EXISTS idx_sessions_owner_lookup ON public.sessions (owner_id, owner_type);
-CREATE INDEX IF NOT EXISTS idx_sessions_expires ON public.sessions (expires_at);
+CREATE INDEX idx_sessions_expires ON public.sessions USING btree (expires_at);
 
-
+INSERT INTO "public"."roles" ("role_id", "role_name", "description", "created_at") VALUES
+(1, 'System Administrator', 'Default executive role', '2026-03-17 04:18:35.178826');
 
 
 
@@ -149,8 +147,4 @@ INSERT INTO "public"."members" ("member_id", "name", "email", "student_id", "cou
 (1, 'Test Member', 'member@example.com', '', NULL, NULL, 'pending', '2026-03-16 11:55:48.644652', '2026-03-16 11:55:48.644652', '$2a$12$YBVX6.jzwunRfM147PNxMuVp0CfIma3iNektdVh1Mdnym195pNjbq'),
 (2, 'Member 20260316115955', 'member20260316115955@test.com', 'S20260316115955', NULL, NULL, 'pending', '2026-03-16 11:59:56.256106', '2026-03-16 11:59:56.256106', '$2a$12$jFWcSANWPP3DZ7fFlQ/dCe6MIyznUz3Ykx4hhyBm7vXE6AS83coti'),
 (3, 'Aeron Sarondo', 'a3rune@gmail.com', '2022-160122', NULL, NULL, 'pending', '2026-03-17 09:54:42.936389', '2026-03-17 09:54:42.936389', '$2a$12$Y3Matl1jeMck.L3aJf3GduE4p8Hdv.AiDvUugcHAQw9/MpzJccoku');
-INSERT INTO "public"."sessions" ("session_id", "refresh_token_hash", "user_agent", "ip_address", "expires_at", "created_at", "revoked_at", "owner_id", "owner_type") VALUES
-('3935b95a6019cea6a3fcdc35af8cb0df095430fe79db083b48224cb2ec21f8c2', '4e6a1ee05377ab0a32b7e93b826eadc77ecf12af2eac3d3a2b995f8dd41bed4d', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0', '127.0.0.1:60906', '2026-03-23 04:53:30.401742+00', '2026-03-16 04:53:30.401742+00', '2026-03-16 05:13:31.123082+00', 1, 'member'),
-('3e56b7c4e7eed0af1d0a069afc01484f0f4e5098f1dcf273ba4e8edee9916263', '697605daf9efb3c0811de2e88ac3c96c1fe63f5e3e7dbec1a592d4c9574ecac9', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0', '127.0.0.1:63857', '2026-03-23 05:22:01.14343+00', '2026-03-16 05:22:01.14343+00', NULL, 1, 'member'),
-('f9f87e260d874844d03d25635d951d8459d21e994ef1f627ad3ea776d924fd0c', 'a645c476bf837bcf74d82ecfe7d16d4231a0d742d684d6d8111a479571bb8521', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0', '127.0.0.1:63857', '2026-03-23 05:22:35.630626+00', '2026-03-16 05:22:35.630626+00', '2026-03-16 05:22:38.185966+00', 1, 'member'),
-('0966eb76ebf1749b08887668aa983ddecee89b95eaec26c217f368e4a3c3b137', '0acc1a256a4fc363cd908b3bd98a4adcea75d1310fc16285d14b2c62aadc9e81', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0', '127.0.0.1', '2026-03-23 08:16:45.351229+00', '2026-03-16 08:16:45.351229+00', NULL, 1, 'member');
+

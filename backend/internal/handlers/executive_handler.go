@@ -23,11 +23,12 @@ func NewExecutiveHandler(executiveService *services.ExecutiveService) *Executive
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body config.CreateExecutiveRequest true "Create payload"
-// @Success 201 {object} config.Executive
-// @Failure 400 {object} map[string]string
-// @Failure 409 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Param request body CreateExecutiveRequestDoc true "Create payload"
+// @Success 201 {object} ExecutiveResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 409 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/executives [post]
 func (h *ExecutiveHandler) CreateExecutive(c *gin.Context) {
 	var req config.CreateExecutiveRequest
@@ -50,8 +51,9 @@ func (h *ExecutiveHandler) CreateExecutive(c *gin.Context) {
 // @Tags Executive
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {array} config.Executive
-// @Failure 500 {object} map[string]string
+// @Success 200 {array} ExecutiveResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/executives [get]
 func (h *ExecutiveHandler) ListExecutives(c *gin.Context) {
 	execs, err := h.executiveService.ListExecutives(c.Request.Context())
@@ -69,9 +71,10 @@ func (h *ExecutiveHandler) ListExecutives(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path string true "Executive ID"
-// @Success 200 {object} config.Executive
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Success 200 {object} ExecutiveResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/executives/{id} [get]
 func (h *ExecutiveHandler) GetExecutiveByID(c *gin.Context) {
 	id := c.Param("id")
@@ -92,12 +95,13 @@ func (h *ExecutiveHandler) GetExecutiveByID(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path string true "Executive ID"
-// @Param request body config.UpdateExecutiveRequest true "Update payload"
-// @Success 200 {object} config.Executive
-// @Failure 400 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Failure 409 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Param request body UpdateExecutiveRequestDoc true "Update payload"
+// @Success 200 {object} ExecutiveResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 409 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/executives/{id} [put]
 func (h *ExecutiveHandler) UpdateExecutive(c *gin.Context) {
 	id := c.Param("id")
@@ -123,9 +127,10 @@ func (h *ExecutiveHandler) UpdateExecutive(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path string true "Executive ID"
-// @Success 200 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Success 200 {object} MessageResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/executives/{id} [delete]
 func (h *ExecutiveHandler) DeleteExecutive(c *gin.Context) {
 	id := c.Param("id")

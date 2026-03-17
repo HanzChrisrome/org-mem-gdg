@@ -19,13 +19,13 @@ func NewPostgresSessionRepository(conn *pgx.Conn) *PostgresSessionRepository {
 }
 
 func (r *PostgresSessionRepository) Create(ctx context.Context, session *config.Session) error {
-	query := `INSERT INTO sessions (session_id, owner_id, owner_type, refresh_token_hash, user_agent, ip_address, expires_at, created_at, revoked_at)
-		  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+	query := `INSERT INTO sessions (refresh_token_id, owner_id, owner_type, refresh_token_hash, user_agent, ip_address, expires_at, created_at, revoked_at)
+		  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING session_id`
 
-	_, err := r.conn.Exec(
+	err := r.conn.QueryRow(
 		ctx,
 		query,
-		session.ID,
+		session.RefreshTokenID,
 		session.OwnerID,
 		session.OwnerType,
 		session.RefreshTokenHash,
@@ -34,7 +34,7 @@ func (r *PostgresSessionRepository) Create(ctx context.Context, session *config.
 		session.ExpiresAt,
 		session.CreatedAt,
 		session.RevokedAt,
-	)
+	).Scan(&session.ID)
 	if err != nil {
 		return fmt.Errorf("failed to create session: %w", err)
 	}
@@ -42,13 +42,14 @@ func (r *PostgresSessionRepository) Create(ctx context.Context, session *config.
 	return nil
 }
 
-func (r *PostgresSessionRepository) GetByID(ctx context.Context, id string) (*config.Session, error) {
-	query := `SELECT session_id, owner_id, owner_type, refresh_token_hash, user_agent, ip_address, expires_at, created_at, revoked_at
-		  FROM sessions WHERE session_id = $1`
+func (r *PostgresSessionRepository) GetByRefreshTokenID(ctx context.Context, id string) (*config.Session, error) {
+	query := `SELECT session_id, refresh_token_id, owner_id, owner_type, refresh_token_hash, user_agent, ip_address, expires_at, created_at, revoked_at
+		  FROM sessions WHERE refresh_token_id = $1`
 
 	var session config.Session
 	err := r.conn.QueryRow(ctx, query, id).Scan(
 		&session.ID,
+		&session.RefreshTokenID,
 		&session.OwnerID,
 		&session.OwnerType,
 		&session.RefreshTokenHash,
@@ -62,7 +63,7 @@ func (r *PostgresSessionRepository) GetByID(ctx context.Context, id string) (*co
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, config.ErrSessionNotFound
 		}
-		return nil, fmt.Errorf("failed to get session by id: %w", err)
+		return nil, fmt.Errorf("failed to get session by refresh_token_id: %w", err)
 	}
 
 	return &session, nil
@@ -87,12 +88,12 @@ func (r *PostgresSessionRepository) Update(ctx context.Context, session *config.
 	return nil
 }
 
-func (r *PostgresSessionRepository) Revoke(ctx context.Context, id string, revokedAt time.Time) error {
-	query := `UPDATE sessions SET revoked_at = $2 WHERE session_id = $1`
+func (r *PostgresSessionRepository) RevokeByRefreshTokenID(ctx context.Context, id string, revokedAt time.Time) error {
+	query := `UPDATE sessions SET revoked_at = $2 WHERE refresh_token_id = $1`
 
 	cmd, err := r.conn.Exec(ctx, query, id, revokedAt)
 	if err != nil {
-		return fmt.Errorf("failed to revoke session: %w", err)
+		return fmt.Errorf("failed to revoke session by refresh_token_id: %w", err)
 	}
 
 	if cmd.RowsAffected() == 0 {
