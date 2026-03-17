@@ -57,7 +57,11 @@ func (s *MemberService) CreateMember(ctx context.Context, req config.RegisterReq
 }
 
 func (s *MemberService) ListMembers(ctx context.Context, query string, status string) ([]config.MemberWithPayment, error) {
-	return s.repo.List(ctx, query, status)
+	members, err := s.repo.List(ctx, query, status)
+	if err != nil {
+		return nil, fmt.Errorf("service failed to list members: %w", err)
+	}
+	return members, nil
 }
 
 func (s *MemberService) GetMemberByID(ctx context.Context, id string) (*config.Member, error) {

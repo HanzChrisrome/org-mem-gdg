@@ -2,6 +2,7 @@ package services_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -85,11 +86,11 @@ func (m *MockSessionRepo) Create(ctx context.Context, s *config.Session) error {
 func (m *MockSessionRepo) Update(ctx context.Context, s *config.Session) error {
 	return m.Called(ctx, s).Error(0)
 }
-func (m *MockSessionRepo) GetByID(ctx context.Context, id string) (*config.Session, error) {
+func (m *MockSessionRepo) GetByRefreshTokenID(ctx context.Context, id string) (*config.Session, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(*config.Session), args.Error(1)
 }
-func (m *MockSessionRepo) Revoke(ctx context.Context, id string, t time.Time) error {
+func (m *MockSessionRepo) RevokeByRefreshTokenID(ctx context.Context, id string, t time.Time) error {
 	return m.Called(ctx, id, t).Error(0)
 }
 
@@ -134,21 +135,25 @@ func TestAuthService_FullFlow(t *testing.T) {
 		assert.Contains(t, tokens.RefreshToken, ".")
 
 		// 2. Mock Refresh with Rotation
-		sessionID := tokens.RefreshToken[:64]
+		parts := strings.Split(tokens.RefreshToken, ".")
+		refreshTokenID := parts[0]
+		refreshTokenSecret := parts[1]
+
 		originalSession := &config.Session{
-			ID:               sessionID,
+			ID:               "550e8400-e29b-41d4-a716-446655440000",
+			RefreshTokenID:   refreshTokenID,
 			OwnerID:          exec.ID,
 			OwnerType:        "executive",
-			RefreshTokenHash: utils.HashToken(tokens.RefreshToken[65:]),
+			RefreshTokenHash: utils.HashToken(refreshTokenSecret),
 			ExpiresAt:        time.Now().Add(1 * time.Hour),
 		}
 
-		sessionRepo.On("GetByID", ctx, sessionID).Return(originalSession, nil)
+		sessionRepo.On("GetByRefreshTokenID", ctx, refreshTokenID).Return(originalSession, nil)
 		sessionRepo.On("Update", ctx, originalSession).Return(nil)
 		execRepo.On("GetByID", ctx, exec.ID).Return(exec, nil)
 
 		// Refresh
-		newTokens, err := service.RefreshAccessToken(ctx, sessionID, tokens.RefreshToken[65:])
+		newTokens, err := service.RefreshAccessToken(ctx, refreshTokenID, refreshTokenSecret)
 
 		assert.NoError(t, err)
 		assert.NotEqual(t, tokens.RefreshToken, newTokens.RefreshToken, "Refresh token must rotate")

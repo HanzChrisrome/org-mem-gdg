@@ -11,7 +11,7 @@ import (
 )
 
 type SessionManager interface {
-	CreateSession(ownerID, ownerType, refreshToken, userAgent, ip string) (*config.Session, error)
+	CreateSession(ownerID, ownerType, refreshTokenID, refreshToken, userAgent, ip string) (*config.Session, error)
 	ValidateSession(session *config.Session, refreshToken string) error
 	RevokeSession(session *config.Session)
 }
@@ -27,19 +27,14 @@ func NewDefaultSessionManager(ttlMinutes int) *DefaultSessionManager {
 	return &DefaultSessionManager{refreshTTL: time.Duration(ttlMinutes) * time.Minute}
 }
 
-func (m *DefaultSessionManager) CreateSession(ownerID, ownerType, refreshToken, userAgent, ip string) (*config.Session, error) {
-	if ownerID == "" || refreshToken == "" {
+func (m *DefaultSessionManager) CreateSession(ownerID, ownerType, refreshTokenID, refreshToken, userAgent, ip string) (*config.Session, error) {
+	if ownerID == "" || refreshTokenID == "" || refreshToken == "" {
 		return nil, config.ErrInvalidInput
-	}
-
-	sessionID, err := randomHex(32)
-	if err != nil {
-		return nil, config.ErrInternal
 	}
 
 	now := time.Now().UTC()
 	return &config.Session{
-		ID:               sessionID,
+		RefreshTokenID:   refreshTokenID,
 		OwnerID:          ownerID,
 		OwnerType:        ownerType,
 		RefreshTokenHash: hashToken(refreshToken),

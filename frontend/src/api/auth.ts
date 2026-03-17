@@ -65,10 +65,14 @@ export async function initAuth(): Promise<boolean> {
 
     // Attempt refresh
     if (refreshToken) {
-      const response = await api.post("/auth/refresh", {
+      const parts = refreshToken.split(".");
+      const refreshTokenID = parts[0];
+      const response = await api.post("/refresh", {
+        refresh_token_id: refreshTokenID,
         refresh_token: refreshToken,
       });
-      localStorage.setItem("access_token", response.data.access_token);
+      const { access_token } = response.data.token;
+      localStorage.setItem("access_token", access_token);
       return true;
     }
 

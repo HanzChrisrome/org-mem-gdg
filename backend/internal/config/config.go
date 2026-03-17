@@ -111,7 +111,8 @@ type TokenPair struct {
 }
 
 type Session struct {
-	ID               string     `json:"id"`
+	ID               string     `json:"-"`
+	RefreshTokenID   string     `json:"id"`
 	OwnerID          string     `json:"owner_id"`
 	OwnerType        string     `json:"owner_type"` // "member" or "executive"
 	RefreshTokenHash string     `json:"-"`

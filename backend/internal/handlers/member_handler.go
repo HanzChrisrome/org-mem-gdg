@@ -147,6 +147,11 @@ func (h *MemberHandler) DeleteMember(c *gin.Context) {
 }
 
 func handleMemberError(c *gin.Context, err error) {
+	if err != nil {
+		// Log the actual error for debugging
+		println("DEBUG [MemberHandler Error]:", err.Error())
+	}
+
 	if errors.Is(err, config.ErrUserNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "member not found"})
 		return

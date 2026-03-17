@@ -166,6 +166,7 @@ func (r *PostgresUserRepository) List(ctx context.Context, searchTerm string, st
 
 	rows, err := r.conn.Query(ctx, query, searchTerm, status)
 	if err != nil {
+		println("DEBUG [PostgresUserRepository List Query Error]:", err.Error())
 		return nil, fmt.Errorf("failed to list members: %w", err)
 	}
 	defer rows.Close()
@@ -179,6 +180,7 @@ func (r *PostgresUserRepository) List(ctx context.Context, searchTerm string, st
 			&m.LatestPaymentID, &m.LatestPaymentStatus, &m.LatestSubmission, &m.LatestApprovalDate, &approverName,
 		)
 		if err != nil {
+			println("DEBUG [PostgresUserRepository List Scan Error]:", err.Error())
 			return nil, fmt.Errorf("failed to scan member: %w", err)
 		}
 		if course != nil {
