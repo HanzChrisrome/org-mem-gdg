@@ -334,6 +334,11 @@
         },
         "/api/logout": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Revoke an active session.",
                 "consumes": [
                     "application/json"
@@ -345,17 +350,6 @@
                     "Auth"
                 ],
                 "summary": "Logout",
-                "parameters": [
-                    {
-                        "description": "Logout payload",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/internal_handlers.LogoutRequest"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -363,8 +357,8 @@
                             "$ref": "#/definitions/internal_handlers.MessageResponse"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
@@ -391,6 +385,7 @@
                         "BearerAuth": []
                     }
                 ],
+                "description": "Provides a searchable list of members including their basic info and latest payment status.",
                 "produces": [
                     "application/json"
                 ],
@@ -407,7 +402,7 @@
                     },
                     {
                         "type": "string",
-                        "description": "Filter by registration status",
+                        "description": "Filter by registration status (e.g. pending, active, inactive)",
                         "name": "status",
                         "in": "query"
                     }
@@ -424,6 +419,12 @@
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
@@ -666,7 +667,7 @@
         },
         "/api/refresh": {
             "post": {
-                "description": "Refresh an access token using session_id and refresh_token.",
+                "description": "Refresh an access token using refresh_token_id and refresh_token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -790,7 +791,7 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Session ID",
+                        "description": "Refresh Token ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -932,14 +933,6 @@
                 }
             }
         },
-        "internal_handlers.LogoutRequest": {
-            "type": "object",
-            "properties": {
-                "session_id": {
-                    "type": "string"
-                }
-            }
-        },
         "internal_handlers.MemberResponse": {
             "type": "object",
             "properties": {
@@ -1033,7 +1026,7 @@
                 "refresh_token": {
                     "type": "string"
                 },
-                "session_id": {
+                "refresh_token_id": {
                     "type": "string"
                 }
             }

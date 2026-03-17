@@ -57,11 +57,6 @@ definitions:
       user_id:
         type: string
     type: object
-  internal_handlers.LogoutRequest:
-    properties:
-      session_id:
-        type: string
-    type: object
   internal_handlers.MemberResponse:
     properties:
       contact_number:
@@ -123,7 +118,7 @@ definitions:
     properties:
       refresh_token:
         type: string
-      session_id:
+      refresh_token_id:
         type: string
     type: object
   internal_handlers.RefreshResponse:
@@ -410,13 +405,6 @@ paths:
       consumes:
       - application/json
       description: Revoke an active session.
-      parameters:
-      - description: Logout payload
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/internal_handlers.LogoutRequest'
       produces:
       - application/json
       responses:
@@ -424,8 +412,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/internal_handlers.MessageResponse'
-        "400":
-          description: Bad Request
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
         "404":
@@ -436,17 +424,21 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Logout
       tags:
       - Auth
   /api/members:
     get:
+      description: Provides a searchable list of members including their basic info
+        and latest payment status.
       parameters:
       - description: Search name/student_id
         in: query
         name: q
         type: string
-      - description: Filter by registration status
+      - description: Filter by registration status (e.g. pending, active, inactive)
         in: query
         name: status
         type: string
@@ -461,6 +453,10 @@ paths:
             type: array
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
@@ -620,7 +616,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Refresh an access token using session_id and refresh_token.
+      description: Refresh an access token using refresh_token_id and refresh_token.
       parameters:
       - description: Refresh payload
         in: body
@@ -694,7 +690,7 @@ paths:
       - application/json
       description: Revoke a session via workspace or admin action.
       parameters:
-      - description: Session ID
+      - description: Refresh Token ID
         in: path
         name: id
         required: true
