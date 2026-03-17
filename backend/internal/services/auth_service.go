@@ -15,6 +15,7 @@ import (
 
 type AuthService struct {
 	repo           repositories.UserRepository
+	execRepo       repositories.ExecutiveRepository
 	sessionRepo    repositories.SessionRepository
 	hasher         utils.PasswordHasher
 	validator      *utils.PasswordValidator
@@ -24,6 +25,7 @@ type AuthService struct {
 
 func NewAuthService(
 	repo repositories.UserRepository,
+	execRepo repositories.ExecutiveRepository,
 	sessionRepo repositories.SessionRepository,
 	hasher utils.PasswordHasher,
 	validator *utils.PasswordValidator,
@@ -32,6 +34,7 @@ func NewAuthService(
 ) *AuthService {
 	return &AuthService{
 		repo:           repo,
+		execRepo:       execRepo,
 		sessionRepo:    sessionRepo,
 		hasher:         hasher,
 		validator:      validator,
@@ -77,53 +80,74 @@ func (s *AuthService) RegisterMember(ctx context.Context, req config.RegisterReq
 	return user, nil
 }
 
-func (s *AuthService) Login(ctx context.Context, req config.LoginRequest) (*config.Member, error) {
+func (s *AuthService) Login(ctx context.Context, req config.LoginRequest) (string, string, string, error) {
 	// Normalize identifier (email-like check or student ID format)
-	var user *config.Member
-	var err error
+	var userID, passwordHash, ownerType string
 
+	// 1. Try members table
+	var member *config.Member
+	var err error
 	if strings.Contains(req.Identifier, "@") {
-		user, err = s.repo.GetByEmail(ctx, req.Identifier)
+		member, err = s.repo.GetByEmail(ctx, req.Identifier)
 	} else {
-		user, err = s.repo.GetByStudentID(ctx, req.Identifier)
+		member, err = s.repo.GetByStudentID(ctx, req.Identifier)
 	}
 
-	if err != nil {
-		// Generic credential failure for both not-found and mismatch
-		return nil, config.ErrInvalidCredentials
+	if err == nil {
+		userID = member.ID
+		passwordHash = member.PasswordHash
+		ownerType = "member"
+	} else if err == config.ErrUserNotFound {
+		// 2. Try executives table
+		var exec *config.Executive
+		if strings.Contains(req.Identifier, "@") {
+			exec, err = s.execRepo.GetByEmail(ctx, req.Identifier)
+		} else {
+			exec, err = s.execRepo.GetByStudentID(ctx, req.Identifier)
+		}
+
+		if err == nil {
+			userID = exec.ID
+			passwordHash = exec.PasswordHash
+			ownerType = "executive"
+		} else {
+			return "", "", "", config.ErrInvalidCredentials
+		}
+	} else {
+		return "", "", "", config.ErrInternal
 	}
 
 	// Verify login hash
-	if err := s.hasher.VerifyPassword(req.Password, user.PasswordHash); err != nil {
-		return nil, config.ErrInvalidCredentials
+	if err := s.hasher.VerifyPassword(req.Password, passwordHash); err != nil {
+		return "", "", "", config.ErrInvalidCredentials
 	}
 
-	return user, nil
+	return userID, ownerType, "", nil
 }
 
-func (s *AuthService) LoginWithToken(ctx context.Context, req config.LoginRequest, userAgent, ip string) (*config.Member, *config.TokenPair, error) {
-	user, err := s.Login(ctx, req)
+func (s *AuthService) LoginWithToken(ctx context.Context, req config.LoginRequest, userAgent, ip string) (string, string, *config.TokenPair, error) {
+	userID, ownerType, _, err := s.Login(ctx, req)
 	if err != nil {
-		return nil, nil, err
-	}
-
-	accessToken, expiresIn, err := s.jwtManager.GenerateAccessToken(user)
-	if err != nil {
-		return nil, nil, fmt.Errorf("%w: access token generation failed: %v", config.ErrInternal, err)
+		return "", "", nil, err
 	}
 
 	refreshToken, err := generateRandomToken(32)
 	if err != nil {
-		return nil, nil, fmt.Errorf("%w: refresh token generation failed: %v", config.ErrInternal, err)
+		return "", "", nil, fmt.Errorf("%w: refresh token generation failed: %v", config.ErrInternal, err)
 	}
 
-	session, err := s.sessionManager.CreateSession(user.ID, "member", refreshToken, userAgent, ip)
+	session, err := s.sessionManager.CreateSession(userID, ownerType, refreshToken, userAgent, ip)
 	if err != nil {
-		return nil, nil, fmt.Errorf("%w: session creation failed: %v", config.ErrInternal, err)
+		return "", "", nil, fmt.Errorf("%w: session creation failed: %v", config.ErrInternal, err)
 	}
 
 	if err := s.sessionRepo.Create(ctx, session); err != nil {
-		return nil, nil, fmt.Errorf("%w: session persistence failed: %v", config.ErrInternal, err)
+		return "", "", nil, fmt.Errorf("%w: session persistence failed: %v", config.ErrInternal, err)
+	}
+
+	accessToken, expiresIn, err := s.jwtManager.GenerateAccessTokenWithSession(userID, session.ID, ownerType)
+	if err != nil {
+		return "", "", nil, fmt.Errorf("%w: access token generation failed: %v", config.ErrInternal, err)
 	}
 
 	tokens := &config.TokenPair{
@@ -133,7 +157,7 @@ func (s *AuthService) LoginWithToken(ctx context.Context, req config.LoginReques
 		ExpiresIn:    expiresIn,
 	}
 
-	return user, tokens, nil
+	return userID, ownerType, tokens, nil
 }
 
 func (s *AuthService) RefreshAccessToken(ctx context.Context, sessionID, refreshToken string) (*config.TokenPair, error) {
@@ -146,31 +170,54 @@ func (s *AuthService) RefreshAccessToken(ctx context.Context, sessionID, refresh
 		return nil, err
 	}
 
-	var user *config.Member
-	if session.OwnerType == "member" {
-		user, err = s.repo.GetByID(ctx, session.OwnerID)
-	} else {
-		// Placeholder for executive lookup if needed in the future
-		// user, err = s.execRepo.GetByID(ctx, session.OwnerID)
-		return nil, fmt.Errorf("executive refresh not yet implemented in service")
-	}
-
+	// 1. Generate new refresh token
+	newRefreshToken, err := generateRandomToken(32)
 	if err != nil {
-		if err == config.ErrUserNotFound {
-			return nil, config.ErrInvalidCredentials
-		}
-		return nil, config.ErrInternal
+		return nil, fmt.Errorf("%w: refresh token generation failed: %v", config.ErrInternal, err)
 	}
 
-	accessToken, expiresIn, err := s.jwtManager.GenerateAccessToken(user)
+	// 2. Update session with new hash and extend expiry
+	session.RefreshTokenHash = utils.HashToken(newRefreshToken)
+	session.ExpiresAt = time.Now().UTC().Add(7 * 24 * time.Hour) // Use a constant or value from config
+
+	// 3. Persist update in repo
+	if err := s.sessionRepo.Update(ctx, session); err != nil {
+		return nil, fmt.Errorf("%w: session update failed: %v", config.ErrInternal, err)
+	}
+
+	var userID string
+	if session.OwnerType == "member" {
+		user, err := s.repo.GetByID(ctx, session.OwnerID)
+		if err != nil {
+			if err == config.ErrUserNotFound {
+				return nil, config.ErrInvalidCredentials
+			}
+			return nil, config.ErrInternal
+		}
+		userID = user.ID
+	} else if session.OwnerType == "executive" {
+		exec, err := s.execRepo.GetByID(ctx, session.OwnerID)
+		if err != nil {
+			if err == config.ErrUserNotFound {
+				return nil, config.ErrInvalidCredentials
+			}
+			return nil, config.ErrInternal
+		}
+		userID = exec.ID
+	} else {
+		return nil, fmt.Errorf("unknown owner type: %s", session.OwnerType)
+	}
+
+	accessToken, expiresIn, err := s.jwtManager.GenerateAccessTokenWithSession(userID, session.ID, session.OwnerType)
 	if err != nil {
 		return nil, config.ErrInternal
 	}
 
 	return &config.TokenPair{
-		AccessToken: accessToken,
-		TokenType:   "Bearer",
-		ExpiresIn:   expiresIn,
+		AccessToken:  accessToken,
+		RefreshToken: fmt.Sprintf("%s.%s", session.ID, newRefreshToken),
+		TokenType:    "Bearer",
+		ExpiresIn:    expiresIn,
 	}, nil
 }
 

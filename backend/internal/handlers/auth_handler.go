@@ -80,15 +80,16 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	userAgent := c.Request.UserAgent()
 	ip := c.ClientIP()
 
-	user, tokenPair, err := h.authService.LoginWithToken(c.Request.Context(), req, userAgent, ip)
+	userID, ownerType, tokenPair, err := h.authService.LoginWithToken(c.Request.Context(), req, userAgent, ip)
 	if err != nil {
 		handleAuthError(c, err)
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"user":  user,
-		"token": tokenPair,
+		"user_id":    userID,
+		"owner_type": ownerType,
+		"token":      tokenPair,
 	})
 }
 
@@ -193,7 +194,7 @@ func handleAuthError(c *gin.Context, err error) {
 		log.Printf("Internal Server Error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": config.ErrInternal.Error()})
 	default:
-		log.Printf("Internal Server Error: %v", err)
+		log.Printf("Internal Server Error: %+v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": config.ErrInternal.Error()})
 	}
 }

@@ -161,11 +161,11 @@
   - POST /api/login – Executive login
   - POST /api/logout – Logout
 - **Members:**
-  - POST /api/members – Add member
-  - GET /api/members – Get member list
-  - GET /api/members/{id} – Get member details
-  - PUT /api/members/{id} – Update member
-  - DELETE /api/members/{id} – Delete member
+  - POST /api/members – Add member (Executive only)
+  - GET /api/members – Get member list with latest payment summary (Executive only)
+  - GET /api/members/{id} – Get member details (Executive only)
+  - PUT /api/members/{id} – Update member details (Executive only)
+  - DELETE /api/members/{id} – Soft delete (Inactivate) member (Executive only)
 - **Registration:**
   - POST /api/register – User registration
   - POST /api/payments – Upload payment proof

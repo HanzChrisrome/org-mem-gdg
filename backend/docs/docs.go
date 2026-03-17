@@ -35,7 +35,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/config.LoginRequest"
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.LoginRequest"
                         }
                     }
                 ],
@@ -97,7 +97,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.LogoutRequest"
+                            "$ref": "#/definitions/internal_handlers.LogoutRequest"
                         }
                     }
                 ],
@@ -141,6 +141,193 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/members": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Member"
+                ],
+                "summary": "List members with payment summary (Executive only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search name/student_id",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by registration status",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.MemberWithPayment"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Member"
+                ],
+                "summary": "Create member (Executive only)",
+                "parameters": [
+                    {
+                        "description": "Create payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Member"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/members/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Member"
+                ],
+                "summary": "Get member detail (Executive only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Member ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Member"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Member"
+                ],
+                "summary": "Update member (Executive only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Member ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.UpdateMemberRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Member"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Member"
+                ],
+                "summary": "Soft delete member (Executive only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Member ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/refresh": {
             "post": {
                 "description": "Refresh an access token using session_id and refresh_token.",
@@ -161,7 +348,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.RefreshRequest"
+                            "$ref": "#/definitions/internal_handlers.RefreshRequest"
                         }
                     }
                 ],
@@ -232,7 +419,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/config.RegisterRequest"
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.RegisterRequest"
                         }
                     }
                 ],
@@ -296,7 +483,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "config.LoginRequest": {
+        "github_com_HanzChrisrome_org-man-app_internal_config.LoginRequest": {
             "type": "object",
             "properties": {
                 "identifier": {
@@ -308,7 +495,86 @@ const docTemplate = `{
                 }
             }
         },
-        "config.RegisterRequest": {
+        "github_com_HanzChrisrome_org-man-app_internal_config.Member": {
+            "type": "object",
+            "properties": {
+                "contact_number": {
+                    "type": "string"
+                },
+                "course": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "last_updated": {
+                    "type": "string"
+                },
+                "member_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "registration_status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_HanzChrisrome_org-man-app_internal_config.MemberWithPayment": {
+            "type": "object",
+            "properties": {
+                "approver_name": {
+                    "type": "string"
+                },
+                "contact_number": {
+                    "type": "string"
+                },
+                "course": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "last_updated": {
+                    "type": "string"
+                },
+                "latest_approval_date": {
+                    "type": "string"
+                },
+                "latest_payment_id": {
+                    "type": "integer"
+                },
+                "latest_payment_status": {
+                    "type": "string"
+                },
+                "latest_submission_date": {
+                    "type": "string"
+                },
+                "member_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "registration_status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_HanzChrisrome_org-man-app_internal_config.RegisterRequest": {
             "type": "object",
             "properties": {
                 "email": {
@@ -325,7 +591,30 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.LogoutRequest": {
+        "github_com_HanzChrisrome_org-man-app_internal_config.UpdateMemberRequest": {
+            "type": "object",
+            "properties": {
+                "contact_number": {
+                    "type": "string"
+                },
+                "course": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "registration_status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.LogoutRequest": {
             "type": "object",
             "properties": {
                 "session_id": {
@@ -333,7 +622,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.RefreshRequest": {
+        "internal_handlers.RefreshRequest": {
             "type": "object",
             "properties": {
                 "refresh_token": {
@@ -343,6 +632,14 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Type 'Bearer ' followed by a space and your JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`
@@ -357,6 +654,8 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "API documentation for org-mem-gdg backend",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
+	LeftDelim:        "{{",
+	RightDelim:       "}}",
 }
 
 func init() {

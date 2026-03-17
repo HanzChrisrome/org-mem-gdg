@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  config.LoginRequest:
+  github_com_HanzChrisrome_org-man-app_internal_config.LoginRequest:
     properties:
       identifier:
         description: Email or StudentID
@@ -8,7 +8,59 @@ definitions:
       password:
         type: string
     type: object
-  config.RegisterRequest:
+  github_com_HanzChrisrome_org-man-app_internal_config.Member:
+    properties:
+      contact_number:
+        type: string
+      course:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      last_updated:
+        type: string
+      member_id:
+        type: string
+      name:
+        type: string
+      registration_status:
+        type: string
+      student_id:
+        type: string
+    type: object
+  github_com_HanzChrisrome_org-man-app_internal_config.MemberWithPayment:
+    properties:
+      approver_name:
+        type: string
+      contact_number:
+        type: string
+      course:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      last_updated:
+        type: string
+      latest_approval_date:
+        type: string
+      latest_payment_id:
+        type: integer
+      latest_payment_status:
+        type: string
+      latest_submission_date:
+        type: string
+      member_id:
+        type: string
+      name:
+        type: string
+      registration_status:
+        type: string
+      student_id:
+        type: string
+    type: object
+  github_com_HanzChrisrome_org-man-app_internal_config.RegisterRequest:
     properties:
       email:
         type: string
@@ -19,12 +71,27 @@ definitions:
       student_id:
         type: string
     type: object
-  handlers.LogoutRequest:
+  github_com_HanzChrisrome_org-man-app_internal_config.UpdateMemberRequest:
+    properties:
+      contact_number:
+        type: string
+      course:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      registration_status:
+        type: string
+      student_id:
+        type: string
+    type: object
+  internal_handlers.LogoutRequest:
     properties:
       session_id:
         type: string
     type: object
-  handlers.RefreshRequest:
+  internal_handlers.RefreshRequest:
     properties:
       refresh_token:
         type: string
@@ -48,7 +115,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/config.LoginRequest'
+          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.LoginRequest'
       produces:
       - application/json
       responses:
@@ -89,7 +156,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.LogoutRequest'
+          $ref: '#/definitions/internal_handlers.LogoutRequest'
       produces:
       - application/json
       responses:
@@ -120,6 +187,121 @@ paths:
       summary: Logout
       tags:
       - Auth
+  /api/members:
+    get:
+      parameters:
+      - description: Search name/student_id
+        in: query
+        name: q
+        type: string
+      - description: Filter by registration status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.MemberWithPayment'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List members with payment summary (Executive only)
+      tags:
+      - Member
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Member'
+      security:
+      - BearerAuth: []
+      summary: Create member (Executive only)
+      tags:
+      - Member
+  /api/members/{id}:
+    delete:
+      parameters:
+      - description: Member ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Soft delete member (Executive only)
+      tags:
+      - Member
+    get:
+      parameters:
+      - description: Member ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Member'
+      security:
+      - BearerAuth: []
+      summary: Get member detail (Executive only)
+      tags:
+      - Member
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Member ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.UpdateMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Member'
+      security:
+      - BearerAuth: []
+      summary: Update member (Executive only)
+      tags:
+      - Member
   /api/refresh:
     post:
       consumes:
@@ -131,7 +313,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.RefreshRequest'
+          $ref: '#/definitions/internal_handlers.RefreshRequest'
       produces:
       - application/json
       responses:
@@ -178,7 +360,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/config.RegisterRequest'
+          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.RegisterRequest'
       produces:
       - application/json
       responses:
@@ -221,4 +403,10 @@ paths:
       summary: Health check
       tags:
       - Health
+securityDefinitions:
+  BearerAuth:
+    description: Type 'Bearer ' followed by a space and your JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
