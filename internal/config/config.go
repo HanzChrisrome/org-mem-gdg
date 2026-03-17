@@ -111,7 +111,8 @@ type TokenPair struct {
 }
 
 type Session struct {
-	ID               string     `json:"id"`
+	ID               string     `json:"-"`
+	RefreshTokenID   string     `json:"id"`
 	OwnerID          string     `json:"owner_id"`
 	OwnerType        string     `json:"owner_type"` // "member" or "executive"
 	RefreshTokenHash string     `json:"-"`
@@ -156,7 +157,7 @@ func LoadConfig() *Config {
 	}
 
 	accessTTLStr := os.Getenv("ACCESS_TOKEN_TTL_MINUTES")
-	accessTTL := 15
+	accessTTL := 8
 	if accessTTLStr != "" {
 		if value, err := strconv.Atoi(accessTTLStr); err == nil {
 			accessTTL = value
@@ -164,7 +165,7 @@ func LoadConfig() *Config {
 	}
 
 	refreshTTLStr := os.Getenv("REFRESH_TOKEN_TTL_HOURS")
-	refreshTTL := 168
+	refreshTTL := 1
 	if refreshTTLStr != "" {
 		if value, err := strconv.Atoi(refreshTTLStr); err == nil {
 			refreshTTL = value

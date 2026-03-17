@@ -10,6 +10,6 @@ import (
 type SessionRepository interface {
 	Create(ctx context.Context, session *config.Session) error
 	Update(ctx context.Context, session *config.Session) error
-	GetByID(ctx context.Context, id string) (*config.Session, error)
-	Revoke(ctx context.Context, id string, revokedAt time.Time) error
+	GetByRefreshTokenID(ctx context.Context, id string) (*config.Session, error)
+	RevokeByRefreshTokenID(ctx context.Context, id string, revokedAt time.Time) error
 }

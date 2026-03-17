@@ -33,9 +33,9 @@ func Auth(jwtManager utils.JWTManager, sessionRepo repositories.SessionRepositor
 			return
 		}
 
-		// Optional: Verify session is not revoked if SID is present
-		if claims.SessionID != "" {
-			session, err := sessionRepo.GetByID(c.Request.Context(), claims.SessionID)
+		// Optional: Verify session is not revoked if RefreshTokenID is present
+		if claims.RefreshTokenID != "" {
+			session, err := sessionRepo.GetByRefreshTokenID(c.Request.Context(), claims.RefreshTokenID)
 			if err != nil || session.RevokedAt != nil {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "session revoked or not found"})
 				c.Abort()
@@ -43,9 +43,9 @@ func Auth(jwtManager utils.JWTManager, sessionRepo repositories.SessionRepositor
 			}
 		}
 
-		// Set user identity, session ID, and owner type in context
+		// Set user identity, refresh token ID, and owner type in context
 		c.Set("user_id", claims.UserID)
-		c.Set("session_id", claims.SessionID)
+		c.Set("refresh_token_id", claims.RefreshTokenID)
 		c.Set("owner_type", claims.OwnerType)
 		c.Next()
 	}
