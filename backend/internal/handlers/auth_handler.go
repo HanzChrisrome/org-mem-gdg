@@ -34,11 +34,11 @@ type LogoutRequest struct {
 // @Tags Auth
 // @Accept json
 // @Produce json
-// @Param request body config.RegisterRequest true "Register payload"
-// @Success 201 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
-// @Failure 409 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Param request body RegisterRequestDoc true "Register payload"
+// @Success 201 {object} RegisterResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 409 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req config.RegisterRequest
@@ -65,11 +65,11 @@ func (h *AuthHandler) Register(c *gin.Context) {
 // @Tags Auth
 // @Accept json
 // @Produce json
-// @Param request body config.LoginRequest true "Login payload"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
-// @Failure 401 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Param request body LoginRequestDoc true "Login payload"
+// @Success 200 {object} LoginResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req config.LoginRequest
@@ -101,11 +101,11 @@ func (h *AuthHandler) Login(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body RefreshRequest true "Refresh payload"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
-// @Failure 401 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Success 200 {object} RefreshResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/refresh [post]
 func (h *AuthHandler) Refresh(c *gin.Context) {
 	var req RefreshRequest
@@ -138,10 +138,10 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body LogoutRequest true "Logout payload"
-// @Success 200 {object} map[string]string
-// @Failure 400 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Success 200 {object} MessageResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
 	var req LogoutRequest
@@ -170,10 +170,10 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Session ID"
-// @Success 200 {object} map[string]string
-// @Failure 400 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Success 200 {object} MessageResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/sessions/{id}/revoke [post]
 func (h *AuthHandler) RevokeSession(c *gin.Context) {
 	sessionID := c.Param("id")

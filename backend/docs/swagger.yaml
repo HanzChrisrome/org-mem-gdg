@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  github_com_HanzChrisrome_org-man-app_internal_config.CreateExecutiveRequest:
+  internal_handlers.CreateExecutiveRequestDoc:
     properties:
       email:
         type: string
@@ -18,7 +18,12 @@ definitions:
     - password
     - student_id
     type: object
-  github_com_HanzChrisrome_org-man-app_internal_config.Executive:
+  internal_handlers.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  internal_handlers.ExecutiveResponse:
     properties:
       created_at:
         type: string
@@ -35,7 +40,7 @@ definitions:
       student_id:
         type: string
     type: object
-  github_com_HanzChrisrome_org-man-app_internal_config.LoginRequest:
+  internal_handlers.LoginRequestDoc:
     properties:
       identifier:
         description: Email or StudentID
@@ -43,7 +48,21 @@ definitions:
       password:
         type: string
     type: object
-  github_com_HanzChrisrome_org-man-app_internal_config.Member:
+  internal_handlers.LoginResponse:
+    properties:
+      owner_type:
+        type: string
+      token:
+        $ref: '#/definitions/internal_handlers.TokenPairResponse'
+      user_id:
+        type: string
+    type: object
+  internal_handlers.LogoutRequest:
+    properties:
+      session_id:
+        type: string
+    type: object
+  internal_handlers.MemberResponse:
     properties:
       contact_number:
         type: string
@@ -64,7 +83,7 @@ definitions:
       student_id:
         type: string
     type: object
-  github_com_HanzChrisrome_org-man-app_internal_config.MemberWithPayment:
+  internal_handlers.MemberWithPaymentResponse:
     properties:
       approver_name:
         type: string
@@ -95,7 +114,24 @@ definitions:
       student_id:
         type: string
     type: object
-  github_com_HanzChrisrome_org-man-app_internal_config.RegisterRequest:
+  internal_handlers.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  internal_handlers.RefreshRequest:
+    properties:
+      refresh_token:
+        type: string
+      session_id:
+        type: string
+    type: object
+  internal_handlers.RefreshResponse:
+    properties:
+      token:
+        $ref: '#/definitions/internal_handlers.TokenPairResponse'
+    type: object
+  internal_handlers.RegisterRequestDoc:
     properties:
       email:
         type: string
@@ -111,7 +147,24 @@ definitions:
     required:
     - source_dashboard
     type: object
-  github_com_HanzChrisrome_org-man-app_internal_config.UpdateExecutiveRequest:
+  internal_handlers.RegisterResponse:
+    properties:
+      owner_type:
+        type: string
+      user: {}
+    type: object
+  internal_handlers.TokenPairResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      refresh_token:
+        type: string
+      token_type:
+        type: string
+    type: object
+  internal_handlers.UpdateExecutiveRequestDoc:
     properties:
       email:
         type: string
@@ -124,7 +177,7 @@ definitions:
       student_id:
         type: string
     type: object
-  github_com_HanzChrisrome_org-man-app_internal_config.UpdateMemberRequest:
+  internal_handlers.UpdateMemberRequestDoc:
     properties:
       contact_number:
         type: string
@@ -137,18 +190,6 @@ definitions:
       registration_status:
         type: string
       student_id:
-        type: string
-    type: object
-  internal_handlers.LogoutRequest:
-    properties:
-      session_id:
-        type: string
-    type: object
-  internal_handlers.RefreshRequest:
-    properties:
-      refresh_token:
-        type: string
-      session_id:
         type: string
     type: object
 info:
@@ -166,14 +207,16 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive'
+              $ref: '#/definitions/internal_handlers.ExecutiveResponse'
             type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: List executives (Executive only)
@@ -188,32 +231,30 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.CreateExecutiveRequest'
+          $ref: '#/definitions/internal_handlers.CreateExecutiveRequestDoc'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive'
+            $ref: '#/definitions/internal_handlers.ExecutiveResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "409":
           description: Conflict
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create executive (Executive only)
@@ -233,21 +274,19 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.MessageResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Delete executive (Executive only)
@@ -266,19 +305,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive'
+            $ref: '#/definitions/internal_handlers.ExecutiveResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get executive detail (Executive only)
@@ -298,38 +337,34 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.UpdateExecutiveRequest'
+          $ref: '#/definitions/internal_handlers.UpdateExecutiveRequestDoc'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive'
+            $ref: '#/definitions/internal_handlers.ExecutiveResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "409":
           description: Conflict
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Update executive (Executive only)
@@ -347,33 +382,26 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.LoginRequest'
+          $ref: '#/definitions/internal_handlers.LoginRequestDoc'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.LoginResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       summary: Login
       tags:
       - Auth
@@ -395,27 +423,19 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.MessageResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       summary: Logout
       tags:
       - Auth
@@ -437,8 +457,16 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.MemberWithPayment'
+              $ref: '#/definitions/internal_handlers.MemberWithPaymentResponse'
             type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: List members with payment summary (Executive only)
@@ -453,14 +481,30 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.RegisterRequest'
+          $ref: '#/definitions/internal_handlers.RegisterRequestDoc'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Member'
+            $ref: '#/definitions/internal_handlers.MemberResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create member (Executive only)
@@ -480,9 +524,19 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.MessageResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Soft delete member (Executive only)
@@ -501,7 +555,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Member'
+            $ref: '#/definitions/internal_handlers.MemberResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get member detail (Executive only)
@@ -521,14 +587,30 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.UpdateMemberRequest'
+          $ref: '#/definitions/internal_handlers.UpdateMemberRequestDoc'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Member'
+            $ref: '#/definitions/internal_handlers.MemberResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Update member (Executive only)
@@ -552,32 +634,23 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.RefreshResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       summary: Refresh access token
       tags:
       - Auth
@@ -592,33 +665,26 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.RegisterRequest'
+          $ref: '#/definitions/internal_handlers.RegisterRequestDoc'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.RegisterResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "409":
           description: Conflict
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       summary: Register
       tags:
       - Auth
@@ -639,27 +705,19 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.MessageResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       summary: Revoke session
       tags:
       - Auth

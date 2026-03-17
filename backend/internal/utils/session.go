@@ -20,11 +20,11 @@ type DefaultSessionManager struct {
 	refreshTTL time.Duration
 }
 
-func NewDefaultSessionManager(ttlHours int) *DefaultSessionManager {
-	if ttlHours <= 0 {
-		ttlHours = 168
+func NewDefaultSessionManager(ttlMinutes int) *DefaultSessionManager {
+	if ttlMinutes <= 0 {
+		ttlMinutes = 1
 	}
-	return &DefaultSessionManager{refreshTTL: time.Duration(ttlHours) * time.Hour}
+	return &DefaultSessionManager{refreshTTL: time.Duration(ttlMinutes) * time.Minute}
 }
 
 func (m *DefaultSessionManager) CreateSession(ownerID, ownerType, refreshToken, userAgent, ip string) (*config.Session, error) {
