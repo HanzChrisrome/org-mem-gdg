@@ -4,9 +4,11 @@ import { NavMain } from "@/components/sidebar/nav-main";
 import { NavMembers } from "@/components/sidebar/nav-members";
 import { NavOthers } from "@/components/sidebar/nav-others";
 import { NavPayments } from "@/components/sidebar/nav-payments";
+import { NavUser } from "@/components/sidebar/nav-user";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -109,9 +111,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavPayments items={data.payments} />
         <NavOthers items={data.others} />
       </SidebarContent>
-      {/* <SidebarFooter>
+      <SidebarFooter>
         <NavUser user={data.user} />
-      </SidebarFooter> */}
+      </SidebarFooter>
     </Sidebar>
   );
 }
