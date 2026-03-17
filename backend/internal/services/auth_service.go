@@ -43,86 +43,92 @@ func NewAuthService(
 	}
 }
 
-func (s *AuthService) RegisterMember(ctx context.Context, req config.RegisterRequest) (*config.Member, error) {
+func (s *AuthService) Register(ctx context.Context, req config.RegisterRequest) (interface{}, string, error) {
 	// 1. Validate password policy
 	if err := s.validator.Validate(req.Password); err != nil {
-		return nil, fmt.Errorf("%w: %v", config.ErrWeakPassword, err)
+		return nil, "", fmt.Errorf("%w: %v", config.ErrWeakPassword, err)
 	}
 
-	// 2. Check for existence (avoid duplicates)
-	exists, err := s.repo.Exists(ctx, req.Email, req.StudentID)
-	if err != nil {
-		return nil, fmt.Errorf("existence check failed: %w", err)
-	}
-	if exists {
-		return nil, config.ErrUserAlreadyExists
-	}
-
-	// 3. Hash password
+	// 2. Hash password
 	hPassword, err := s.hasher.HashPassword(req.Password)
 	if err != nil {
-		return nil, fmt.Errorf("password hashing failed: %w", err)
+		return nil, "", fmt.Errorf("password hashing failed: %w", err)
 	}
 
-	// 4. Create user domain model
-	user := &config.Member{
-		Name:         req.Name,
-		Email:        req.Email,
-		StudentID:    req.StudentID,
-		PasswordHash: hPassword,
-	}
+	// 3. Route based on source dashboard
+	switch req.SourceDashboard {
+	case config.DashboardMembers:
+		// Check for existence
+		exists, err := s.repo.Exists(ctx, req.Email, req.StudentID)
+		if err != nil {
+			return nil, "", fmt.Errorf("existence check failed: %w", err)
+		}
+		if exists {
+			return nil, "", config.ErrUserAlreadyExists
+		}
 
-	// 5. Persist
-	if err := s.repo.Create(ctx, user); err != nil {
-		return nil, fmt.Errorf("user creation failed: %w", err)
-	}
+		user := &config.Member{
+			Name:         req.Name,
+			Email:        req.Email,
+			StudentID:    req.StudentID,
+			PasswordHash: hPassword,
+		}
 
-	return user, nil
+		if err := s.repo.Create(ctx, user); err != nil {
+			return nil, "", fmt.Errorf("user creation failed: %w", err)
+		}
+		return user, "member", nil
+
+	case config.DashboardExecutives:
+		// Check for existence
+		exists, err := s.execRepo.Exists(ctx, req.Email, req.StudentID)
+		if err != nil {
+			return nil, "", fmt.Errorf("existence check failed: %w", err)
+		}
+		if exists {
+			return nil, "", config.ErrUserAlreadyExists
+		}
+
+		exec := &config.Executive{
+			Name:         req.Name,
+			Email:        req.Email,
+			StudentID:    req.StudentID,
+			PasswordHash: hPassword,
+		}
+
+		if err := s.execRepo.Create(ctx, exec); err != nil {
+			return nil, "", fmt.Errorf("executive creation failed: %w", err)
+		}
+		return exec, "executive", nil
+
+	default:
+		return nil, "", fmt.Errorf("%w: invalid source dashboard", config.ErrInvalidInput)
+	}
 }
 
 func (s *AuthService) Login(ctx context.Context, req config.LoginRequest) (string, string, string, error) {
-	// Normalize identifier (email-like check or student ID format)
-	var userID, passwordHash, ownerType string
-
-	// 1. Try members table
-	var member *config.Member
+	// 1. Try executives table only
+	var exec *config.Executive
 	var err error
 	if strings.Contains(req.Identifier, "@") {
-		member, err = s.repo.GetByEmail(ctx, req.Identifier)
+		exec, err = s.execRepo.GetByEmail(ctx, req.Identifier)
 	} else {
-		member, err = s.repo.GetByStudentID(ctx, req.Identifier)
+		exec, err = s.execRepo.GetByStudentID(ctx, req.Identifier)
 	}
 
-	if err == nil {
-		userID = member.ID
-		passwordHash = member.PasswordHash
-		ownerType = "member"
-	} else if err == config.ErrUserNotFound {
-		// 2. Try executives table
-		var exec *config.Executive
-		if strings.Contains(req.Identifier, "@") {
-			exec, err = s.execRepo.GetByEmail(ctx, req.Identifier)
-		} else {
-			exec, err = s.execRepo.GetByStudentID(ctx, req.Identifier)
-		}
-
-		if err == nil {
-			userID = exec.ID
-			passwordHash = exec.PasswordHash
-			ownerType = "executive"
-		} else {
+	if err != nil {
+		if err == config.ErrUserNotFound {
 			return "", "", "", config.ErrInvalidCredentials
 		}
-	} else {
 		return "", "", "", config.ErrInternal
 	}
 
 	// Verify login hash
-	if err := s.hasher.VerifyPassword(req.Password, passwordHash); err != nil {
+	if err := s.hasher.VerifyPassword(req.Password, exec.PasswordHash); err != nil {
 		return "", "", "", config.ErrInvalidCredentials
 	}
 
-	return userID, ownerType, "", nil
+	return exec.ID, "executive", "", nil
 }
 
 func (s *AuthService) LoginWithToken(ctx context.Context, req config.LoginRequest, userAgent, ip string) (string, string, *config.TokenPair, error) {
@@ -178,7 +184,7 @@ func (s *AuthService) RefreshAccessToken(ctx context.Context, sessionID, refresh
 
 	// 2. Update session with new hash and extend expiry
 	session.RefreshTokenHash = utils.HashToken(newRefreshToken)
-	session.ExpiresAt = time.Now().UTC().Add(7 * 24 * time.Hour) // Use a constant or value from config
+	session.ExpiresAt = time.Now().UTC().Add(1 * time.Hour) // Extend by 1 hour
 
 	// 3. Persist update in repo
 	if err := s.sessionRepo.Update(ctx, session); err != nil {
@@ -186,7 +192,8 @@ func (s *AuthService) RefreshAccessToken(ctx context.Context, sessionID, refresh
 	}
 
 	var userID string
-	if session.OwnerType == "member" {
+	switch session.OwnerType {
+	case "member":
 		user, err := s.repo.GetByID(ctx, session.OwnerID)
 		if err != nil {
 			if err == config.ErrUserNotFound {
@@ -195,7 +202,7 @@ func (s *AuthService) RefreshAccessToken(ctx context.Context, sessionID, refresh
 			return nil, config.ErrInternal
 		}
 		userID = user.ID
-	} else if session.OwnerType == "executive" {
+	case "executive":
 		exec, err := s.execRepo.GetByID(ctx, session.OwnerID)
 		if err != nil {
 			if err == config.ErrUserNotFound {
@@ -204,7 +211,7 @@ func (s *AuthService) RefreshAccessToken(ctx context.Context, sessionID, refresh
 			return nil, config.ErrInternal
 		}
 		userID = exec.ID
-	} else {
+	default:
 		return nil, fmt.Errorf("unknown owner type: %s", session.OwnerType)
 	}
 
@@ -222,6 +229,14 @@ func (s *AuthService) RefreshAccessToken(ctx context.Context, sessionID, refresh
 }
 
 func (s *AuthService) Logout(ctx context.Context, sessionID string) error {
+	if sessionID == "" {
+		return config.ErrInvalidInput
+	}
+
+	return s.sessionRepo.Revoke(ctx, sessionID, time.Now().UTC())
+}
+
+func (s *AuthService) RevokeSession(ctx context.Context, sessionID string) error {
 	if sessionID == "" {
 		return config.ErrInvalidInput
 	}

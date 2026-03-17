@@ -23,11 +23,13 @@ var (
 )
 
 const (
-	StatusPending   = "pending"
-	StatusApproved  = "approved"
-	StatusRejected  = "rejected"
-	StatusInactive  = "inactive"
-	StatusResubmit  = "resubmitted"
+	StatusPending       = "pending"
+	StatusApproved      = "approved"
+	StatusRejected      = "rejected"
+	StatusInactive      = "inactive"
+	StatusResubmit      = "resubmitted"
+	DashboardMembers    = "members"
+	DashboardExecutives = "executives"
 )
 
 type Member struct {
@@ -73,10 +75,27 @@ type Executive struct {
 }
 
 type RegisterRequest struct {
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-	StudentID string `json:"student_id"`
-	Password  string `json:"password"`
+	Name            string `json:"name"`
+	Email           string `json:"email"`
+	StudentID       string `json:"student_id"`
+	Password        string `json:"password"`
+	SourceDashboard string `json:"source_dashboard" binding:"required"` // "members" or "executives"
+}
+
+type CreateExecutiveRequest struct {
+	Name      string `json:"name" binding:"required"`
+	Email     string `json:"email" binding:"required,email"`
+	StudentID string `json:"student_id" binding:"required"`
+	Password  string `json:"password" binding:"required"`
+	RoleID    *int   `json:"role_id"`
+}
+
+type UpdateExecutiveRequest struct {
+	Name      *string `json:"name"`
+	Email     *string `json:"email" binding:"omitempty,email"`
+	StudentID *string `json:"student_id"`
+	Password  *string `json:"password"`
+	RoleID    *int    `json:"role_id"`
 }
 
 type LoginRequest struct {
@@ -137,7 +156,7 @@ func LoadConfig() *Config {
 	}
 
 	accessTTLStr := os.Getenv("ACCESS_TOKEN_TTL_MINUTES")
-	accessTTL := 15
+	accessTTL := 8
 	if accessTTLStr != "" {
 		if value, err := strconv.Atoi(accessTTLStr); err == nil {
 			accessTTL = value
@@ -145,7 +164,7 @@ func LoadConfig() *Config {
 	}
 
 	refreshTTLStr := os.Getenv("REFRESH_TOKEN_TTL_HOURS")
-	refreshTTL := 168
+	refreshTTL := 1
 	if refreshTTLStr != "" {
 		if value, err := strconv.Atoi(refreshTTLStr); err == nil {
 			refreshTTL = value

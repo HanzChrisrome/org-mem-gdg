@@ -45,6 +45,7 @@ func main() {
 	sessionManager := utils.NewDefaultSessionManager(cfg.RefreshTokenTTLHours)
 	authService := services.NewAuthService(userRepo, execRepo, sessionRepo, hasher, validator, jwtManager, sessionManager)
 	memberService := services.NewMemberService(userRepo, hasher, validator)
+	executiveService := services.NewExecutiveService(execRepo, hasher, validator)
 
 	var version string
 	startupCtx, cancelStartup := context.WithTimeout(context.Background(), 5*time.Second)
@@ -67,7 +68,8 @@ func main() {
 	healthHandler := handlers.NewHealthHandler()
 	authHandler := handlers.NewAuthHandler(authService)
 	memberHandler := handlers.NewMemberHandler(memberService)
-	routes.Register(router, healthHandler, authHandler, memberHandler, jwtManager, sessionRepo)
+	executiveHandler := handlers.NewExecutiveHandler(executiveService)
+	routes.Register(router, healthHandler, authHandler, memberHandler, executiveHandler, jwtManager, sessionRepo)
 
 	log.Printf("Server running on :%s", cfg.Port)
 

@@ -29,8 +29,8 @@ type LogoutRequest struct {
 }
 
 // Register godoc
-// @Summary Register member
-// @Description Create a new member account.
+// @Summary Register
+// @Description Create a new member or executive account based on the source dashboard.
 // @Tags Auth
 // @Accept json
 // @Produce json
@@ -47,20 +47,21 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	user, err := h.authService.RegisterMember(c.Request.Context(), req)
+	user, ownerType, err := h.authService.Register(c.Request.Context(), req)
 	if err != nil {
 		handleAuthError(c, err)
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"user": user,
+		"user":       user,
+		"owner_type": ownerType,
 	})
 }
 
 // Login godoc
 // @Summary Login
-// @Description Authenticate a member and return a token pair.
+// @Description Authenticate an executive and return a token pair. Member login is not supported.
 // @Tags Auth
 // @Accept json
 // @Produce json
@@ -160,6 +161,33 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "logged out"})
+}
+
+// RevokeSession godoc
+// @Summary Revoke session
+// @Description Revoke a session via workspace or admin action.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param id path string true "Session ID"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/sessions/{id}/revoke [post]
+func (h *AuthHandler) RevokeSession(c *gin.Context) {
+	sessionID := c.Param("id")
+	if sessionID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "session_id is required"})
+		return
+	}
+
+	if err := h.authService.RevokeSession(c.Request.Context(), sessionID); err != nil {
+		handleAuthError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "session revoked"})
 }
 
 func normalizeRefreshInput(sessionID, refreshToken string) (string, string) {

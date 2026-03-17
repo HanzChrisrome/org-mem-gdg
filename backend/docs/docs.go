@@ -15,9 +15,290 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/executives": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Executive"
+                ],
+                "summary": "List executives (Executive only)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Executive"
+                ],
+                "summary": "Create executive (Executive only)",
+                "parameters": [
+                    {
+                        "description": "Create payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.CreateExecutiveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/executives/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Executive"
+                ],
+                "summary": "Get executive detail (Executive only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Executive ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Executive"
+                ],
+                "summary": "Update executive (Executive only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Executive ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.UpdateExecutiveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Executive"
+                ],
+                "summary": "Delete executive (Executive only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Executive ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/login": {
             "post": {
-                "description": "Authenticate a member and return a token pair.",
+                "description": "Authenticate an executive and return a token pair. Member login is not supported.",
                 "consumes": [
                     "application/json"
                 ],
@@ -401,7 +682,7 @@ const docTemplate = `{
         },
         "/api/register": {
             "post": {
-                "description": "Create a new member account.",
+                "description": "Create a new member or executive account based on the source dashboard.",
                 "consumes": [
                     "application/json"
                 ],
@@ -411,7 +692,7 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Register member",
+                "summary": "Register",
                 "parameters": [
                     {
                         "description": "Register payload",
@@ -461,6 +742,68 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/sessions/{id}/revoke": {
+            "post": {
+                "description": "Revoke a session via workspace or admin action.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Revoke session",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Returns API liveness status.",
@@ -483,6 +826,58 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "github_com_HanzChrisrome_org-man-app_internal_config.CreateExecutiveRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "name",
+                "password",
+                "student_id"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "role_id": {
+                    "type": "integer"
+                },
+                "student_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_HanzChrisrome_org-man-app_internal_config.Executive": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "executive_id": {
+                    "type": "string"
+                },
+                "last_updated": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "role_id": {
+                    "type": "integer"
+                },
+                "student_id": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_HanzChrisrome_org-man-app_internal_config.LoginRequest": {
             "type": "object",
             "properties": {
@@ -576,6 +971,9 @@ const docTemplate = `{
         },
         "github_com_HanzChrisrome_org-man-app_internal_config.RegisterRequest": {
             "type": "object",
+            "required": [
+                "source_dashboard"
+            ],
             "properties": {
                 "email": {
                     "type": "string"
@@ -585,6 +983,30 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string"
+                },
+                "source_dashboard": {
+                    "description": "\"members\" or \"executives\"",
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_HanzChrisrome_org-man-app_internal_config.UpdateExecutiveRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "role_id": {
+                    "type": "integer"
                 },
                 "student_id": {
                     "type": "string"

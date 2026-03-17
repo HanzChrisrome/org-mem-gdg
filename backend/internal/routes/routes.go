@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Register(router *gin.Engine, healthHandler *handlers.HealthHandler, authHandler *handlers.AuthHandler, memberHandler *handlers.MemberHandler, jwtManager utils.JWTManager, sessionRepo repositories.SessionRepository) {
+func Register(router *gin.Engine, healthHandler *handlers.HealthHandler, authHandler *handlers.AuthHandler, memberHandler *handlers.MemberHandler, executiveHandler *handlers.ExecutiveHandler, jwtManager utils.JWTManager, sessionRepo repositories.SessionRepository) {
 	router.GET("/health", healthHandler.Health)
 
 	api := router.Group("/api")
@@ -22,6 +22,7 @@ func Register(router *gin.Engine, healthHandler *handlers.HealthHandler, authHan
 		protected.Use(middleware.Auth(jwtManager, sessionRepo))
 		{
 			protected.POST("/logout", authHandler.Logout)
+			protected.POST("/sessions/:id/revoke", authHandler.RevokeSession)
 
 			// Member management (Executives only)
 			members := protected.Group("/members")
@@ -32,6 +33,16 @@ func Register(router *gin.Engine, healthHandler *handlers.HealthHandler, authHan
 				members.GET("/:id", memberHandler.GetMemberByID)
 				members.PUT("/:id", memberHandler.UpdateMember)
 				members.DELETE("/:id", memberHandler.DeleteMember)
+			}
+
+			executives := protected.Group("/executives")
+			executives.Use(middleware.RequireExecutive())
+			{
+				executives.POST("", executiveHandler.CreateExecutive)
+				executives.GET("", executiveHandler.ListExecutives)
+				executives.GET("/:id", executiveHandler.GetExecutiveByID)
+				executives.PUT("/:id", executiveHandler.UpdateExecutive)
+				executives.DELETE("/:id", executiveHandler.DeleteExecutive)
 			}
 		}
 	}
