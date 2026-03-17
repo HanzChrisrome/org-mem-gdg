@@ -1,19 +1,10 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { LoginForm } from "@/components/login-form";
 
 export default function LoginPage() {
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
-      <div className="w-[400px] bg-white p-6 rounded-lg shadow">
-        <h1 className="text-2xl font-bold mb-6">Executive Login</h1>
-
-        <div className="space-y-4">
-          <Input placeholder="Email" />
-
-          <Input type="password" placeholder="Password" />
-
-          <Button className="w-full">Login</Button>
-        </div>
+    <div className="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
+      <div className="w-full max-w-sm md:max-w-4xl">
+        <LoginForm />
       </div>
     </div>
   );
