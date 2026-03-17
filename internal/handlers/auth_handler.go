@@ -19,15 +19,27 @@ func NewAuthHandler(authService *services.AuthService) *AuthHandler {
 	return &AuthHandler{authService: authService}
 }
 
-type refreshRequest struct {
+type RefreshRequest struct {
 	SessionID    string `json:"session_id"`
 	RefreshToken string `json:"refresh_token"`
 }
 
-type logoutRequest struct {
+type LogoutRequest struct {
 	SessionID string `json:"session_id"`
 }
 
+// Register godoc
+// @Summary Register
+// @Description Create a new member or executive account based on the source dashboard.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body config.RegisterRequest true "Register payload"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 409 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req config.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -35,17 +47,30 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	user, err := h.authService.RegisterMember(c.Request.Context(), req)
+	user, ownerType, err := h.authService.Register(c.Request.Context(), req)
 	if err != nil {
 		handleAuthError(c, err)
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"user": user,
+		"user":       user,
+		"owner_type": ownerType,
 	})
 }
 
+// Login godoc
+// @Summary Login
+// @Description Authenticate an executive and return a token pair. Member login is not supported.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body config.LoginRequest true "Login payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req config.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -56,20 +81,34 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	userAgent := c.Request.UserAgent()
 	ip := c.ClientIP()
 
-	user, tokenPair, err := h.authService.LoginWithToken(c.Request.Context(), req, userAgent, ip)
+	userID, ownerType, tokenPair, err := h.authService.LoginWithToken(c.Request.Context(), req, userAgent, ip)
 	if err != nil {
 		handleAuthError(c, err)
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"user":  user,
-		"token": tokenPair,
+		"user_id":    userID,
+		"owner_type": ownerType,
+		"token":      tokenPair,
 	})
 }
 
+// Refresh godoc
+// @Summary Refresh access token
+// @Description Refresh an access token using session_id and refresh_token.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body RefreshRequest true "Refresh payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/refresh [post]
 func (h *AuthHandler) Refresh(c *gin.Context) {
-	var req refreshRequest
+	var req RefreshRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return
@@ -92,8 +131,20 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 	})
 }
 
+// Logout godoc
+// @Summary Logout
+// @Description Revoke an active session.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body LogoutRequest true "Logout payload"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
-	var req logoutRequest
+	var req LogoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return
@@ -144,7 +195,7 @@ func handleAuthError(c *gin.Context, err error) {
 		log.Printf("Internal Server Error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": config.ErrInternal.Error()})
 	default:
-		log.Printf("Internal Server Error: %v", err)
+		log.Printf("Internal Server Error: %+v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": config.ErrInternal.Error()})
 	}
 }
