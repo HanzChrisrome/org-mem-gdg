@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { login } from "@/api/auth";
 import gdgoc_logo from "@/assets/gdgoc-logo.png";
 import login_bg from "@/assets/login-bg.png";
+import { useAuth } from "@/context/AuthProvider";
 import { type LoginFormData, loginSchema } from "@/types/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Lock, MailIcon } from "lucide-react";
@@ -25,6 +26,7 @@ export function LoginForm({
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
+  const { setLoggedIn } = useAuth();
   const navigate = useNavigate();
 
   const onSubmit = async (data: LoginFormData) => {
@@ -34,6 +36,8 @@ export function LoginForm({
         password: data.password,
       });
 
+      setLoggedIn(true);
+      toast.success("Login successful!");
       navigate("/dashboard");
     } catch (error) {
       const message =

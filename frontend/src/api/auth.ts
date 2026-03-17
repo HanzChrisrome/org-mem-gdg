@@ -7,14 +7,19 @@ interface LoginData {
   password: string;
 }
 
-interface LoginResponse {
-  token: {
-    access_token: string;
-    refresh_token: string;
-    token_type: string;
-    expires_in: number;
-  };
-  user_id: string;
+function clearStoredAuth() {
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+  localStorage.removeItem("user_id");
+}
+
+function getSessionIdFromRefreshToken(
+  refreshToken: string | null,
+): string | null {
+  if (!refreshToken) return null;
+
+  const [sessionId] = refreshToken.split(".", 2);
+  return sessionId || null;
 }
 
 // Check if access token is still valid
@@ -31,23 +36,31 @@ function isTokenValid(token: string) {
 }
 
 // Login function
-export async function login(data: LoginData): Promise<LoginResponse> {
+export async function login(data: LoginData): Promise<void> {
   const response = await api.post("/login", data);
   const { token, user_id } = response.data;
 
   localStorage.setItem("access_token", token.access_token);
   localStorage.setItem("refresh_token", token.refresh_token);
   localStorage.setItem("user_id", user_id);
-
-  toast.success("Login successful!");
-  return { token, user_id };
 }
 
 // Logout function
-export function logout() {
-  localStorage.removeItem("access_token");
-  localStorage.removeItem("refresh_token");
-  localStorage.removeItem("user_id");
+export async function logout() {
+  const refreshToken = localStorage.getItem("refresh_token");
+  const sessionId = getSessionIdFromRefreshToken(refreshToken);
+
+  try {
+    if (sessionId) {
+      await api.post("/logout", {
+        session_id: sessionId,
+      });
+    }
+  } catch (error) {
+    console.warn("Failed to revoke session on server:", error);
+  } finally {
+    clearStoredAuth();
+  }
 
   toast.success("Logged out successfully!");
   window.location.href = "/login";
@@ -65,22 +78,25 @@ export async function initAuth(): Promise<boolean> {
 
     // Attempt refresh
     if (refreshToken) {
-      const parts = refreshToken.split(".");
-      const refreshTokenID = parts[0];
       const response = await api.post("/refresh", {
-        refresh_token_id: refreshTokenID,
         refresh_token: refreshToken,
       });
-      const { access_token } = response.data.token;
-      localStorage.setItem("access_token", access_token);
+
+      const nextToken = response.data?.token;
+      if (nextToken?.access_token) {
+        localStorage.setItem("access_token", nextToken.access_token);
+      }
+      if (nextToken?.refresh_token) {
+        localStorage.setItem("refresh_token", nextToken.refresh_token);
+      }
       return true;
     }
 
     // Tokens invalid
-    localStorage.clear();
+    clearStoredAuth();
     return false;
   } catch {
-    localStorage.clear();
+    clearStoredAuth();
     return false;
   }
 }

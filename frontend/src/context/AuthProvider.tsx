@@ -10,6 +10,7 @@ import {
 interface AuthContextType {
   isLoggedIn: boolean;
   loading: boolean;
+  setLoggedIn: (value: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,7 +26,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, loading }}>
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        loading,
+        setLoggedIn: setIsLoggedIn,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
