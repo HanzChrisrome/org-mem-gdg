@@ -1,14 +1,6 @@
 basePath: /
 definitions:
-  config.LoginRequest:
-    properties:
-      identifier:
-        description: Email or StudentID
-        type: string
-      password:
-        type: string
-    type: object
-  config.RegisterRequest:
+  github_com_HanzChrisrome_org-man-app_internal_config.CreateExecutiveRequest:
     properties:
       email:
         type: string
@@ -16,15 +8,143 @@ definitions:
         type: string
       password:
         type: string
+      role_id:
+        type: integer
+      student_id:
+        type: string
+    required:
+    - email
+    - name
+    - password
+    - student_id
+    type: object
+  github_com_HanzChrisrome_org-man-app_internal_config.Executive:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      executive_id:
+        type: string
+      last_updated:
+        type: string
+      name:
+        type: string
+      role_id:
+        type: integer
       student_id:
         type: string
     type: object
-  handlers.LogoutRequest:
+  github_com_HanzChrisrome_org-man-app_internal_config.LoginRequest:
+    properties:
+      identifier:
+        description: Email or StudentID
+        type: string
+      password:
+        type: string
+    type: object
+  github_com_HanzChrisrome_org-man-app_internal_config.Member:
+    properties:
+      contact_number:
+        type: string
+      course:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      last_updated:
+        type: string
+      member_id:
+        type: string
+      name:
+        type: string
+      registration_status:
+        type: string
+      student_id:
+        type: string
+    type: object
+  github_com_HanzChrisrome_org-man-app_internal_config.MemberWithPayment:
+    properties:
+      approver_name:
+        type: string
+      contact_number:
+        type: string
+      course:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      last_updated:
+        type: string
+      latest_approval_date:
+        type: string
+      latest_payment_id:
+        type: integer
+      latest_payment_status:
+        type: string
+      latest_submission_date:
+        type: string
+      member_id:
+        type: string
+      name:
+        type: string
+      registration_status:
+        type: string
+      student_id:
+        type: string
+    type: object
+  github_com_HanzChrisrome_org-man-app_internal_config.RegisterRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      source_dashboard:
+        description: '"members" or "executives"'
+        type: string
+      student_id:
+        type: string
+    required:
+    - source_dashboard
+    type: object
+  github_com_HanzChrisrome_org-man-app_internal_config.UpdateExecutiveRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      role_id:
+        type: integer
+      student_id:
+        type: string
+    type: object
+  github_com_HanzChrisrome_org-man-app_internal_config.UpdateMemberRequest:
+    properties:
+      contact_number:
+        type: string
+      course:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      registration_status:
+        type: string
+      student_id:
+        type: string
+    type: object
+  internal_handlers.LogoutRequest:
     properties:
       session_id:
         type: string
     type: object
-  handlers.RefreshRequest:
+  internal_handlers.RefreshRequest:
     properties:
       refresh_token:
         type: string
@@ -37,18 +157,197 @@ info:
   title: Org Mem GDG API
   version: "1.0"
 paths:
+  /api/executives:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List executives (Executive only)
+      tags:
+      - Executive
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.CreateExecutiveRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create executive (Executive only)
+      tags:
+      - Executive
+  /api/executives/{id}:
+    delete:
+      parameters:
+      - description: Executive ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete executive (Executive only)
+      tags:
+      - Executive
+    get:
+      parameters:
+      - description: Executive ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get executive detail (Executive only)
+      tags:
+      - Executive
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Executive ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.UpdateExecutiveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Executive'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update executive (Executive only)
+      tags:
+      - Executive
   /api/login:
     post:
       consumes:
       - application/json
-      description: Authenticate a member and return a token pair.
+      description: Authenticate an executive and return a token pair. Member login
+        is not supported.
       parameters:
       - description: Login payload
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/config.LoginRequest'
+          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.LoginRequest'
       produces:
       - application/json
       responses:
@@ -89,7 +388,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.LogoutRequest'
+          $ref: '#/definitions/internal_handlers.LogoutRequest'
       produces:
       - application/json
       responses:
@@ -120,6 +419,121 @@ paths:
       summary: Logout
       tags:
       - Auth
+  /api/members:
+    get:
+      parameters:
+      - description: Search name/student_id
+        in: query
+        name: q
+        type: string
+      - description: Filter by registration status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.MemberWithPayment'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List members with payment summary (Executive only)
+      tags:
+      - Member
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Member'
+      security:
+      - BearerAuth: []
+      summary: Create member (Executive only)
+      tags:
+      - Member
+  /api/members/{id}:
+    delete:
+      parameters:
+      - description: Member ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Soft delete member (Executive only)
+      tags:
+      - Member
+    get:
+      parameters:
+      - description: Member ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Member'
+      security:
+      - BearerAuth: []
+      summary: Get member detail (Executive only)
+      tags:
+      - Member
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Member ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.UpdateMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.Member'
+      security:
+      - BearerAuth: []
+      summary: Update member (Executive only)
+      tags:
+      - Member
   /api/refresh:
     post:
       consumes:
@@ -131,7 +545,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.RefreshRequest'
+          $ref: '#/definitions/internal_handlers.RefreshRequest'
       produces:
       - application/json
       responses:
@@ -171,14 +585,14 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new member account.
+      description: Create a new member or executive account based on the source dashboard.
       parameters:
       - description: Register payload
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/config.RegisterRequest'
+          $ref: '#/definitions/github_com_HanzChrisrome_org-man-app_internal_config.RegisterRequest'
       produces:
       - application/json
       responses:
@@ -205,7 +619,48 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Register member
+      summary: Register
+      tags:
+      - Auth
+  /api/sessions/{id}/revoke:
+    post:
+      consumes:
+      - application/json
+      description: Revoke a session via workspace or admin action.
+      parameters:
+      - description: Session ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Revoke session
       tags:
       - Auth
   /health:
@@ -221,4 +676,10 @@ paths:
       summary: Health check
       tags:
       - Health
+securityDefinitions:
+  BearerAuth:
+    description: Type 'Bearer ' followed by a space and your JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

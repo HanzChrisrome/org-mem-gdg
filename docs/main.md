@@ -25,7 +25,7 @@
 
 | ID        | Business Requirement | Description                                                                                                                              |
 | :-------- | :------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
-| **BR-01** | Member Registration  | Users must be able to register as a member through an online form, and this registration will let them have access to members dashboard. |
+| **BR-01** | Member Registration  | Users must be able to register through an online form. Registration source determines the entity type (Member or Executive).              |
 | **BR-02** | Member Management    | Executives must be able to add, view, update, and delete members.                                                                        |
 | **BR-03** | Payment Tracking     | Executives must be able to mark membership payments as paid manually.                                                                    |
 | **BR-03** | Event Management     | Executives must be able to create events, manage RSVPs, and track attendance.                                                            |
@@ -36,11 +36,11 @@
 ## 3. Functional Requirements
 
 - **FR-01: User Authentication**
-  - **Description:** Executives and members must log in securely to access the system.
-  - **Technical Implementation:** Authentication & role-based access; store hashed passwords; optional JWT or session tokens; rate-limit login attempts; input validation; audit log for login/logout; prevent brute-force attacks.
+  - **Description:** Only Executives can log in securely to access the management dashboard. Member login is not supported.
+  - **Technical Implementation:** Authentication for executives; store hashed passwords; optional JWT or session tokens; rate-limit login attempts; input validation; audit log for login/logout; prevent brute-force attacks.
 - **FR-02: Member Registration & Creation**
-  - **Description:** Executives can add member details including name, contact info, and membership ID. Users must also be able to register as members and upload proof of payments.
-  - **Technical Implementation:** Input validation; uniqueness checks for email/student ID; file upload validation (jpg/png/pdf, max size 5MB); store uploads securely (cloud or DB); default payment status = Pending; audit log on creation; API returns status codes with descriptive messages; concurrent submission handling.
+  - **Description:** Executives can add member details. Users can register via the public form which routes data to the members table.
+  - **Technical Implementation:** Input validation; source_dashboard parameter for routing; uniqueness checks for email/student ID; file upload validation (jpg/png/pdf, max size 5MB); store uploads securely (cloud or DB); default payment status = Pending; audit log on creation; API returns status codes with descriptive messages; concurrent submission handling.
 - **FR-03: Update Member**
   - **Description:** Executives can update member information.
   - **Technical Implementation:** Input validation; check uniqueness if email/student ID changed; audit log old vs new values; atomic updates in DB; proper error handling for invalid updates; API returns appropriate status codes.
@@ -161,11 +161,11 @@
   - POST /api/login – Executive login
   - POST /api/logout – Logout
 - **Members:**
-  - POST /api/members – Add member
-  - GET /api/members – Get member list
-  - GET /api/members/{id} – Get member details
-  - PUT /api/members/{id} – Update member
-  - DELETE /api/members/{id} – Delete member
+  - POST /api/members – Add member (Executive only)
+  - GET /api/members – Get member list with latest payment summary (Executive only)
+  - GET /api/members/{id} – Get member details (Executive only)
+  - PUT /api/members/{id} – Update member details (Executive only)
+  - DELETE /api/members/{id} – Soft delete (Inactivate) member (Executive only)
 - **Registration:**
   - POST /api/register – User registration
   - POST /api/payments – Upload payment proof

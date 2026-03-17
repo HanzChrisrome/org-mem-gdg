@@ -22,21 +22,80 @@ var (
 	ErrSessionExpired     = errors.New("session expired")
 )
 
+const (
+	StatusPending       = "pending"
+	StatusApproved      = "approved"
+	StatusRejected      = "rejected"
+	StatusInactive      = "inactive"
+	StatusResubmit      = "resubmitted"
+	DashboardMembers    = "members"
+	DashboardExecutives = "executives"
+)
+
 type Member struct {
-	ID           string    `json:"member_id"`
+	ID                 string    `json:"member_id"`
+	Name               string    `json:"name"`
+	Email              string    `json:"email"`
+	StudentID          string    `json:"student_id"`
+	Course             string    `json:"course,omitempty"`
+	ContactNumber      string    `json:"contact_number,omitempty"`
+	RegistrationStatus string    `json:"registration_status"`
+	PasswordHash       string    `json:"-"`
+	CreatedAt          time.Time `json:"created_at"`
+	LastUpdated        time.Time `json:"last_updated"`
+}
+
+type MemberWithPayment struct {
+	Member
+	LatestPaymentID     *int       `json:"latest_payment_id"`
+	LatestPaymentStatus *string    `json:"latest_payment_status"`
+	LatestSubmission    *time.Time `json:"latest_submission_date"`
+	LatestApprovalDate  *time.Time `json:"latest_approval_date"`
+	ApproverName        *string    `json:"approver_name"`
+}
+
+type UpdateMemberRequest struct {
+	Name               *string `json:"name"`
+	Email              *string `json:"email"`
+	StudentID          *string `json:"student_id"`
+	Course             *string `json:"course"`
+	ContactNumber      *string `json:"contact_number"`
+	RegistrationStatus *string `json:"registration_status"`
+}
+
+type Executive struct {
+	ID           string    `json:"executive_id"`
 	Name         string    `json:"name"`
 	Email        string    `json:"email"`
 	StudentID    string    `json:"student_id"`
+	RoleID       int       `json:"role_id"`
 	PasswordHash string    `json:"-"`
 	CreatedAt    time.Time `json:"created_at"`
 	LastUpdated  time.Time `json:"last_updated"`
 }
 
 type RegisterRequest struct {
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-	StudentID string `json:"student_id"`
-	Password  string `json:"password"`
+	Name            string `json:"name"`
+	Email           string `json:"email"`
+	StudentID       string `json:"student_id"`
+	Password        string `json:"password"`
+	SourceDashboard string `json:"source_dashboard" binding:"required"` // "members" or "executives"
+}
+
+type CreateExecutiveRequest struct {
+	Name      string `json:"name" binding:"required"`
+	Email     string `json:"email" binding:"required,email"`
+	StudentID string `json:"student_id" binding:"required"`
+	Password  string `json:"password" binding:"required"`
+	RoleID    *int   `json:"role_id"`
+}
+
+type UpdateExecutiveRequest struct {
+	Name      *string `json:"name"`
+	Email     *string `json:"email" binding:"omitempty,email"`
+	StudentID *string `json:"student_id"`
+	Password  *string `json:"password"`
+	RoleID    *int    `json:"role_id"`
 }
 
 type LoginRequest struct {
@@ -97,7 +156,7 @@ func LoadConfig() *Config {
 	}
 
 	accessTTLStr := os.Getenv("ACCESS_TOKEN_TTL_MINUTES")
-	accessTTL := 15
+	accessTTL := 8
 	if accessTTLStr != "" {
 		if value, err := strconv.Atoi(accessTTLStr); err == nil {
 			accessTTL = value
@@ -105,7 +164,7 @@ func LoadConfig() *Config {
 	}
 
 	refreshTTLStr := os.Getenv("REFRESH_TOKEN_TTL_HOURS")
-	refreshTTL := 168
+	refreshTTL := 1
 	if refreshTTLStr != "" {
 		if value, err := strconv.Atoi(refreshTTLStr); err == nil {
 			refreshTTL = value

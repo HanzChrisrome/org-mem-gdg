@@ -68,6 +68,25 @@ func (r *PostgresSessionRepository) GetByID(ctx context.Context, id string) (*co
 	return &session, nil
 }
 
+func (r *PostgresSessionRepository) Update(ctx context.Context, session *config.Session) error {
+	query := `UPDATE sessions SET refresh_token_hash = $2, ip_address = $3, user_agent = $4, expires_at = $5 WHERE session_id = $1`
+
+	_, err := r.conn.Exec(
+		ctx,
+		query,
+		session.ID,
+		session.RefreshTokenHash,
+		session.IPAddress,
+		session.UserAgent,
+		session.ExpiresAt,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update session: %w", err)
+	}
+
+	return nil
+}
+
 func (r *PostgresSessionRepository) Revoke(ctx context.Context, id string, revokedAt time.Time) error {
 	query := `UPDATE sessions SET revoked_at = $2 WHERE session_id = $1`
 

@@ -79,9 +79,13 @@ func (m *DefaultSessionManager) RevokeSession(session *config.Session) {
 	session.RevokedAt = &now
 }
 
-func hashToken(token string) string {
+func HashToken(token string) string {
 	sum := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(sum[:])
+}
+
+func hashToken(token string) string {
+	return HashToken(token)
 }
 
 func randomHex(size int) (string, error) {

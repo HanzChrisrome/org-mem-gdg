@@ -9,12 +9,15 @@ import (
 )
 
 type AccessClaims struct {
-	UserID string `json:"uid"`
+	UserID    string `json:"uid"`
+	SessionID string `json:"sid,omitempty"`
+	OwnerType string `json:"ot,omitempty"` // "member" or "executive"
 	jwt.RegisteredClaims
 }
 
 type JWTManager interface {
-	GenerateAccessToken(user *config.Member) (string, int64, error)
+	GenerateAccessToken(userID string) (string, int64, error)
+	GenerateAccessTokenWithSession(userID, sessionID string, ownerType string) (string, int64, error)
 	ValidateAccessToken(token string) (*AccessClaims, error)
 }
 
@@ -38,17 +41,23 @@ func NewHMACJWTManager(secret, issuer string, ttlMinutes int) *HMACJWTManager {
 	}
 }
 
-func (m *HMACJWTManager) GenerateAccessToken(user *config.Member) (string, int64, error) {
-	if user == nil || user.ID == "" {
+func (m *HMACJWTManager) GenerateAccessToken(userID string) (string, int64, error) {
+	return m.GenerateAccessTokenWithSession(userID, "", "")
+}
+
+func (m *HMACJWTManager) GenerateAccessTokenWithSession(userID, sessionID string, ownerType string) (string, int64, error) {
+	if userID == "" {
 		return "", 0, config.ErrInvalidInput
 	}
 
 	now := time.Now().UTC()
 	expiresAt := now.Add(m.accessTTL)
 	claims := AccessClaims{
-		UserID: user.ID,
+		UserID:    userID,
+		SessionID: sessionID,
+		OwnerType: ownerType,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   user.ID,
+			Subject:   userID,
 			Issuer:    m.issuer,
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
