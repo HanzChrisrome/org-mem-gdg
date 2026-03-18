@@ -13,15 +13,6 @@ function clearStoredAuth() {
   localStorage.removeItem("user_id");
 }
 
-function getSessionIdFromRefreshToken(
-  refreshToken: string | null,
-): string | null {
-  if (!refreshToken) return null;
-
-  const [sessionId] = refreshToken.split(".", 2);
-  return sessionId || null;
-}
-
 // Check if access token is still valid
 function isTokenValid(token: string) {
   try {
@@ -47,15 +38,8 @@ export async function login(data: LoginData): Promise<void> {
 
 // Logout function
 export async function logout() {
-  const refreshToken = localStorage.getItem("refresh_token");
-  const sessionId = getSessionIdFromRefreshToken(refreshToken);
-
   try {
-    if (sessionId) {
-      await api.post("/logout", {
-        session_id: sessionId,
-      });
-    }
+    await api.post("/logout");
   } catch (error) {
     console.warn("Failed to revoke session on server:", error);
   } finally {

@@ -4,15 +4,11 @@ import { NavMain } from "@/components/sidebar/nav-main";
 import { NavMembers } from "@/components/sidebar/nav-members";
 import { NavOthers } from "@/components/sidebar/nav-others";
 import { NavPayments } from "@/components/sidebar/nav-payments";
-import { NavUser } from "@/components/sidebar/nav-user";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import {
   BarChartIcon,
@@ -25,6 +21,9 @@ import {
   TrendingUpIcon,
   UserPlusIcon,
 } from "lucide-react";
+
+import logo from "@/assets/gdgoc-logo.png";
+import { NavUser } from "./nav-user";
 
 const data = {
   user: {
@@ -96,14 +95,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:p-1.5!"
-            ></SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <div className="flex items-center justify-center">
+          <img src={logo} alt="GDG on Campus Logo" className="h-14 w-auto" />
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
