@@ -145,20 +145,10 @@ func (r *PostgresUserRepository) Delete(ctx context.Context, id string) error {
 }
 
 func (r *PostgresUserRepository) List(ctx context.Context, searchTerm string, status string) ([]config.MemberWithPayment, error) {
-	// JOIN logic to get latest payment summary
 	query := `
 		SELECT
-			m.member_id, m.name, m.email, m.student_id, m.course, m.contact_number, m.registration_status, m.created_at, m.last_updated,
-			p.payment_id, p.payment_status, p.submission_date, p.approval_date, e.name as approver_name
+			m.member_id, m.name, m.email, m.student_id, m.course, m.contact_number, m.registration_status, m.created_at, m.last_updated
 		FROM members m
-		LEFT JOIN LATERAL (
-			SELECT payment_id, payment_status, submission_date, approval_date, approved_by
-			FROM payments
-			WHERE member_id = m.member_id
-			ORDER BY submission_date DESC, payment_id DESC
-			LIMIT 1
-		) p ON true
-		LEFT JOIN executives e ON p.approved_by = e.executive_id
 		WHERE ($1 = '' OR m.name ILIKE '%' || $1 || '%' OR m.student_id ILIKE '%' || $1 || '%')
 		  AND ($2 = '' OR m.registration_status = $2)
 		ORDER BY m.created_at DESC
@@ -174,10 +164,9 @@ func (r *PostgresUserRepository) List(ctx context.Context, searchTerm string, st
 	var members []config.MemberWithPayment
 	for rows.Next() {
 		var m config.MemberWithPayment
-		var contactNumber, course, approverName *string
+		var contactNumber, course *string
 		err := rows.Scan(
 			&m.ID, &m.Name, &m.Email, &m.StudentID, &course, &contactNumber, &m.RegistrationStatus, &m.CreatedAt, &m.LastUpdated,
-			&m.LatestPaymentID, &m.LatestPaymentStatus, &m.LatestSubmission, &m.LatestApprovalDate, &approverName,
 		)
 		if err != nil {
 			println("DEBUG [PostgresUserRepository List Scan Error]:", err.Error())
@@ -189,7 +178,6 @@ func (r *PostgresUserRepository) List(ctx context.Context, searchTerm string, st
 		if contactNumber != nil {
 			m.ContactNumber = *contactNumber
 		}
-		m.ApproverName = approverName // m.ApproverName is already *string in config.MemberWithPayment
 		members = append(members, m)
 	}
 

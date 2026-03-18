@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -47,7 +48,7 @@ type Member struct {
 
 type MemberWithPayment struct {
 	Member
-	LatestPaymentID     *int       `json:"latest_payment_id"`
+	LatestPaymentID     *string    `json:"latest_payment_id"`
 	LatestPaymentStatus *string    `json:"latest_payment_status"`
 	LatestSubmission    *time.Time `json:"latest_submission_date"`
 	LatestApprovalDate  *time.Time `json:"latest_approval_date"`
@@ -132,6 +133,51 @@ type Config struct {
 	JWTIssuer             string
 	AccessTokenTTLMinutes int
 	RefreshTokenTTLHours  int
+	EnablePayloadTrace    bool
+	TraceRequestBody      bool
+	TraceResponseBody     bool
+	TraceHeaders          []string
+	TraceExcludePaths     []string
+	TraceMaxBodyBytes     int
+	TraceFilePath         string
+	RateLimitRPS          float64
+	RateLimitBurst        int
+}
+
+func splitCSV(value string) []string {
+	if value == "" {
+		return nil
+	}
+
+	parts := strings.Split(value, ",")
+	result := make([]string, 0, len(parts))
+	for _, p := range parts {
+		item := strings.TrimSpace(p)
+		if item != "" {
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
+func splitCSVWithDefault(value string, fallback []string) []string {
+	items := splitCSV(value)
+	if len(items) == 0 {
+		return fallback
+	}
+	return items
+}
+
+func parseBoolWithDefault(value string, fallback bool) bool {
+	if value == "" {
+		return fallback
+	}
+
+	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		return fallback
+	}
+	return parsed
 }
 
 func LoadConfig() *Config {
@@ -172,6 +218,30 @@ func LoadConfig() *Config {
 		}
 	}
 
+	traceMaxBodyBytesStr := os.Getenv("TRACE_MAX_BODY_BYTES")
+	traceMaxBodyBytes := 8192
+	if traceMaxBodyBytesStr != "" {
+		if value, err := strconv.Atoi(traceMaxBodyBytesStr); err == nil {
+			traceMaxBodyBytes = value
+		}
+	}
+
+	rateLimitRPSStr := os.Getenv("RATE_LIMIT_RPS")
+	rateLimitRPS := 5.0
+	if rateLimitRPSStr != "" {
+		if value, err := strconv.ParseFloat(rateLimitRPSStr, 64); err == nil {
+			rateLimitRPS = value
+		}
+	}
+
+	rateLimitBurstStr := os.Getenv("RATE_LIMIT_BURST")
+	rateLimitBurst := 10
+	if rateLimitBurstStr != "" {
+		if value, err := strconv.Atoi(rateLimitBurstStr); err == nil {
+			rateLimitBurst = value
+		}
+	}
+
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		jwtSecret = "dev-secret-change-me"
@@ -191,6 +261,19 @@ func LoadConfig() *Config {
 		JWTIssuer:             jwtIssuer,
 		AccessTokenTTLMinutes: accessTTL,
 		RefreshTokenTTLHours:  refreshTTL,
+		EnablePayloadTrace:    parseBoolWithDefault(os.Getenv("TRACE_ENABLED"), true),
+		TraceRequestBody:      parseBoolWithDefault(os.Getenv("TRACE_REQUEST_BODY"), true),
+		TraceResponseBody:     parseBoolWithDefault(os.Getenv("TRACE_RESPONSE_BODY"), true),
+		TraceHeaders:          splitCSVWithDefault(os.Getenv("TRACE_HEADERS"), []string{"Content-Type", "X-Trace-ID"}),
+		TraceExcludePaths:     splitCSV(os.Getenv("TRACE_EXCLUDE_PATHS")),
+		TraceMaxBodyBytes:     traceMaxBodyBytes,
+		TraceFilePath:         os.Getenv("TRACE_FILE_PATH"),
+		RateLimitRPS:          rateLimitRPS,
+		RateLimitBurst:        rateLimitBurst,
+	}
+
+	if cfg.TraceFilePath == "" {
+		cfg.TraceFilePath = "logs/payload-trace.log"
 	}
 
 	if cfg.DatabaseURL == "" {

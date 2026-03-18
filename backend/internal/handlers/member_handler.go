@@ -48,13 +48,15 @@ func (h *MemberHandler) CreateMember(c *gin.Context) {
 
 // ListMembers godoc
 // @Summary List members with payment summary (Executive only)
+// @Description Provides a searchable list of members including their basic info and latest payment status.
 // @Tags Member
 // @Produce json
 // @Security BearerAuth
 // @Param q query string false "Search name/student_id"
-// @Param status query string false "Filter by registration status"
+// @Param status query string false "Filter by registration status (e.g. pending, active, inactive)"
 // @Success 200 {array} MemberWithPaymentResponse
 // @Failure 401 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /api/members [get]
 func (h *MemberHandler) ListMembers(c *gin.Context) {

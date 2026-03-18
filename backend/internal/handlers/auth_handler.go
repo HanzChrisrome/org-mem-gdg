@@ -24,10 +24,6 @@ type RefreshRequest struct {
 	RefreshToken   string `json:"refresh_token"`
 }
 
-type LogoutRequest struct {
-	RefreshTokenID string `json:"refresh_token_id"`
-}
-
 // Register godoc
 // @Summary Register
 // @Description Create a new member or executive account based on the source dashboard.
@@ -137,25 +133,26 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 // @Tags Auth
 // @Accept json
 // @Produce json
-// @Param request body LogoutRequest true "Logout payload"
+// @Security BearerAuth
 // @Success 200 {object} MessageResponse
-// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
 // @Failure 404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /api/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
-	var req LogoutRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+	refreshTokenID, exists := c.Get("refresh_token_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "session context missing"})
 		return
 	}
 
-	if req.RefreshTokenID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "refresh_token_id is required"})
+	idStr, ok := refreshTokenID.(string)
+	if !ok || idStr == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid session context"})
 		return
 	}
 
-	if err := h.authService.Logout(c.Request.Context(), req.RefreshTokenID); err != nil {
+	if err := h.authService.Logout(c.Request.Context(), idStr); err != nil {
 		handleAuthError(c, err)
 		return
 	}
