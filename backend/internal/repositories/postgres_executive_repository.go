@@ -20,11 +20,11 @@ func NewPostgresExecutiveRepository(conn *pgx.Conn) *PostgresExecutiveRepository
 }
 
 func (r *PostgresExecutiveRepository) GetByID(ctx context.Context, id string) (*config.Executive, error) {
-	query := `SELECT executive_id, name, email, student_id, role_id::text, password_hash, created_at, last_updated
+	query := `SELECT executive_id, name, email, student_id, role_id, password_hash, created_at, last_updated
 	          FROM executives WHERE executive_id = $1`
 
 	exec := &config.Executive{}
-	var roleID sql.NullString
+	var roleID sql.NullInt64
 	err := r.conn.QueryRow(ctx, query, id).Scan(
 		&exec.ID, &exec.Name, &exec.Email, &exec.StudentID, &roleID, &exec.PasswordHash, &exec.CreatedAt, &exec.LastUpdated,
 	)
@@ -37,20 +37,20 @@ func (r *PostgresExecutiveRepository) GetByID(ctx context.Context, id string) (*
 	}
 
 	if roleID.Valid {
-		exec.RoleID = roleID.String
+		exec.RoleID = int(roleID.Int64)
 	} else {
-		exec.RoleID = ""
+		exec.RoleID = 0
 	}
 
 	return exec, nil
 }
 
 func (r *PostgresExecutiveRepository) GetByEmail(ctx context.Context, email string) (*config.Executive, error) {
-	query := `SELECT executive_id, name, email, student_id, role_id::text, password_hash, created_at, last_updated
+	query := `SELECT executive_id, name, email, student_id, role_id, password_hash, created_at, last_updated
 	          FROM executives WHERE email = $1`
 
 	exec := &config.Executive{}
-	var roleID sql.NullString
+	var roleID sql.NullInt64
 	err := r.conn.QueryRow(ctx, query, email).Scan(
 		&exec.ID, &exec.Name, &exec.Email, &exec.StudentID, &roleID, &exec.PasswordHash, &exec.CreatedAt, &exec.LastUpdated,
 	)
@@ -63,20 +63,20 @@ func (r *PostgresExecutiveRepository) GetByEmail(ctx context.Context, email stri
 	}
 
 	if roleID.Valid {
-		exec.RoleID = roleID.String
+		exec.RoleID = int(roleID.Int64)
 	} else {
-		exec.RoleID = ""
+		exec.RoleID = 0
 	}
 
 	return exec, nil
 }
 
 func (r *PostgresExecutiveRepository) GetByStudentID(ctx context.Context, studentID string) (*config.Executive, error) {
-	query := `SELECT executive_id, name, email, student_id, role_id::text, password_hash, created_at, last_updated
+	query := `SELECT executive_id, name, email, student_id, role_id, password_hash, created_at, last_updated
 	          FROM executives WHERE student_id = $1`
 
 	exec := &config.Executive{}
-	var roleID sql.NullString
+	var roleID sql.NullInt64
 	err := r.conn.QueryRow(ctx, query, studentID).Scan(
 		&exec.ID, &exec.Name, &exec.Email, &exec.StudentID, &roleID, &exec.PasswordHash, &exec.CreatedAt, &exec.LastUpdated,
 	)
@@ -89,9 +89,9 @@ func (r *PostgresExecutiveRepository) GetByStudentID(ctx context.Context, studen
 	}
 
 	if roleID.Valid {
-		exec.RoleID = roleID.String
+		exec.RoleID = int(roleID.Int64)
 	} else {
-		exec.RoleID = ""
+		exec.RoleID = 0
 	}
 
 	return exec, nil
@@ -116,7 +116,7 @@ func (r *PostgresExecutiveRepository) Create(ctx context.Context, exec *config.E
 	exec.LastUpdated = now
 
 	var roleIDValue interface{}
-	if exec.RoleID == "" {
+	if exec.RoleID == 0 {
 		roleIDValue = nil
 	} else {
 		roleIDValue = exec.RoleID
@@ -131,7 +131,7 @@ func (r *PostgresExecutiveRepository) Create(ctx context.Context, exec *config.E
 }
 
 func (r *PostgresExecutiveRepository) List(ctx context.Context) ([]config.Executive, error) {
-	query := `SELECT executive_id, name, email, student_id, role_id::text, password_hash, created_at, last_updated
+	query := `SELECT executive_id, name, email, student_id, role_id, password_hash, created_at, last_updated
 	          FROM executives ORDER BY created_at DESC`
 
 	rows, err := r.conn.Query(ctx, query)
@@ -143,25 +143,25 @@ func (r *PostgresExecutiveRepository) List(ctx context.Context) ([]config.Execut
 	executives := make([]config.Executive, 0)
 	for rows.Next() {
 		exec := config.Executive{}
-		var roleID sql.NullString
+		var roleID sql.NullInt64
 		err := rows.Scan(
 			&exec.ID, &exec.Name, &exec.Email, &exec.StudentID, &roleID, &exec.PasswordHash, &exec.CreatedAt, &exec.LastUpdated,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan executive: %w", err)
+			return nil, fmt.Errorf("failed to scan executive row: %w", err)
 		}
 
 		if roleID.Valid {
-			exec.RoleID = roleID.String
+			exec.RoleID = int(roleID.Int64)
 		} else {
-			exec.RoleID = ""
+			exec.RoleID = 0
 		}
 
 		executives = append(executives, exec)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("failed to iterate executives: %w", err)
+		return nil, fmt.Errorf("rows error: %w", err)
 	}
 
 	return executives, nil
@@ -174,7 +174,7 @@ func (r *PostgresExecutiveRepository) Update(ctx context.Context, exec *config.E
 	exec.LastUpdated = now
 
 	var roleIDValue interface{}
-	if exec.RoleID == "" {
+	if exec.RoleID == 0 {
 		roleIDValue = nil
 	} else {
 		roleIDValue = exec.RoleID

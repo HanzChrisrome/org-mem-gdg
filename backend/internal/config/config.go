@@ -69,7 +69,7 @@ type Executive struct {
 	Name         string    `json:"name"`
 	Email        string    `json:"email"`
 	StudentID    string    `json:"student_id"`
-	RoleID       string    `json:"role_id"`
+	RoleID       int       `json:"role_id"`
 	PasswordHash string    `json:"-"`
 	CreatedAt    time.Time `json:"created_at"`
 	LastUpdated  time.Time `json:"last_updated"`
@@ -84,11 +84,11 @@ type RegisterRequest struct {
 }
 
 type CreateExecutiveRequest struct {
-	Name      string  `json:"name" binding:"required"`
-	Email     string  `json:"email" binding:"required,email"`
-	StudentID string  `json:"student_id" binding:"required"`
-	Password  string  `json:"password" binding:"required"`
-	RoleID    *string `json:"role_id"`
+	Name      string `json:"name" binding:"required"`
+	Email     string `json:"email" binding:"required,email"`
+	StudentID string `json:"student_id" binding:"required"`
+	Password  string `json:"password" binding:"required"`
+	RoleID    *int   `json:"role_id"`
 }
 
 type UpdateExecutiveRequest struct {
@@ -96,7 +96,7 @@ type UpdateExecutiveRequest struct {
 	Email     *string `json:"email" binding:"omitempty,email"`
 	StudentID *string `json:"student_id"`
 	Password  *string `json:"password"`
-	RoleID    *string `json:"role_id"`
+	RoleID    *int    `json:"role_id"`
 }
 
 type LoginRequest struct {
