@@ -59,8 +59,10 @@ func main() {
 
 	router := gin.Default()
 
-	// Add CORS middleware
+	// Global Middlewares
 	router.Use(middleware.CORS())
+	router.Use(middleware.PayloadTracer(cfg))
+	router.Use(middleware.RateLimiter(cfg.RateLimitRPS, cfg.RateLimitBurst))
 
 	// Swagger endpoint
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

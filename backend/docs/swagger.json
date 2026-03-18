@@ -866,7 +866,8 @@
                     "type": "string"
                 },
                 "role_id": {
-                    "type": "integer"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "student_id": {
                     "type": "string"
@@ -900,7 +901,8 @@
                     "type": "string"
                 },
                 "role_id": {
-                    "type": "integer"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "student_id": {
                     "type": "string"
@@ -990,7 +992,8 @@
                     "type": "string"
                 },
                 "latest_payment_id": {
-                    "type": "integer"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "latest_payment_status": {
                     "type": "string"
@@ -1102,7 +1105,8 @@
                     "type": "string"
                 },
                 "role_id": {
-                    "type": "integer"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "student_id": {
                     "type": "string"

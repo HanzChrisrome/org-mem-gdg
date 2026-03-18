@@ -873,7 +873,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "role_id": {
-                    "type": "integer"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "student_id": {
                     "type": "string"
@@ -907,7 +908,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "role_id": {
-                    "type": "integer"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "student_id": {
                     "type": "string"
@@ -997,7 +999,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "latest_payment_id": {
-                    "type": "integer"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "latest_payment_status": {
                     "type": "string"
@@ -1109,7 +1112,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "role_id": {
-                    "type": "integer"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "student_id": {
                     "type": "string"
