@@ -11,6 +11,9 @@ dev:
 backend-run:
 	cd backend && go run cmd/api/main.go
 
+backend-smoke-endpoints:
+	powershell -ExecutionPolicy Bypass -File scripts/smoke-endpoints.ps1
+
 backend-lint:
 	cd backend && golangci-lint run
 

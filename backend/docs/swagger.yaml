@@ -9,7 +9,8 @@ definitions:
       password:
         type: string
       role_id:
-        type: integer
+        format: uuid
+        type: string
       student_id:
         type: string
     required:
@@ -36,7 +37,8 @@ definitions:
       name:
         type: string
       role_id:
-        type: integer
+        format: uuid
+        type: string
       student_id:
         type: string
     type: object
@@ -95,7 +97,8 @@ definitions:
       latest_approval_date:
         type: string
       latest_payment_id:
-        type: integer
+        format: uuid
+        type: string
       latest_payment_status:
         type: string
       latest_submission_date:
@@ -168,7 +171,8 @@ definitions:
       password:
         type: string
       role_id:
-        type: integer
+        format: uuid
+        type: string
       student_id:
         type: string
     type: object

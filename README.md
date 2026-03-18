@@ -150,11 +150,75 @@ just --list
 Common tasks:
 
 - `just backend-run`
+- `just backend-smoke-endpoints`
 - `just backend-lint`
 - `just backend-fmt`
 - `just frontend-dev`
 - `just frontend-lint`
 - `just frontend-format`
+
+## Endpoint Smoke Test
+
+Use the smoke script to run an end-to-end validation of all currently registered API endpoints.
+
+### What the test does
+
+The script in [scripts/smoke-endpoints.ps1](scripts/smoke-endpoints.ps1) executes this flow:
+
+1. Verify public endpoints: `/swagger/index.html`, `/health`
+2. Register and login an executive account
+3. Refresh token using `refresh_token_id` and `refresh_token`
+4. Call protected member endpoints (create, list, get, update, delete)
+5. Call protected executive endpoints (create, list, get, update, delete)
+6. Revoke a session, then logout
+
+Each request validates expected HTTP status codes and fails immediately on mismatch.
+
+### How to run
+
+1. Start backend:
+
+```bash
+just backend-run
+```
+
+2. Run smoke test from repository root:
+
+```bash
+just backend-smoke-endpoints
+```
+
+You can also run the script directly:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/smoke-endpoints.ps1
+```
+
+### Trace logs and trace IDs
+
+While smoke tests run, payload tracing records each request/response pair with a unique `trace_id`.
+
+- Default trace file path: [backend/logs/payload-trace.log](backend/logs/payload-trace.log)
+- Response header includes `X-Trace-ID` for client-to-log correlation
+- The log payload also includes `trace_id` so you can search exact request records
+
+Example workflow:
+
+1. Capture `X-Trace-ID` from a response
+2. Search the same ID in [backend/logs/payload-trace.log](backend/logs/payload-trace.log)
+3. Inspect request/response payload, status, and headers for that specific trace
+
+### Trace configuration
+
+Configure tracing behavior with environment variables:
+
+- `TRACE_ENABLED` (default: `true`)
+- `TRACE_REQUEST_BODY` (default: `true`)
+- `TRACE_RESPONSE_BODY` (default: `true`)
+- `TRACE_HEADERS` (default: `Content-Type,X-Trace-ID`)
+- `TRACE_EXCLUDE_PATHS` (comma-separated, supports suffix wildcard like `/swagger/*`)
+- `TRACE_MAX_BODY_BYTES` (default: `8192`)
+- `TRACE_FILE_PATH` (default: `logs/payload-trace.log`)
 
 ## Notes
 
