@@ -341,6 +341,11 @@ const docTemplate = `{
         },
         "/api/logout": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Revoke an active session.",
                 "consumes": [
                     "application/json"
@@ -352,17 +357,6 @@ const docTemplate = `{
                     "Auth"
                 ],
                 "summary": "Logout",
-                "parameters": [
-                    {
-                        "description": "Logout payload",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/internal_handlers.LogoutRequest"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -370,8 +364,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/internal_handlers.MessageResponse"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
@@ -398,6 +392,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Provides a searchable list of members including their basic info and latest payment status.",
                 "produces": [
                     "application/json"
                 ],
@@ -414,7 +409,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Filter by registration status",
+                        "description": "Filter by registration status (e.g. pending, active, inactive)",
                         "name": "status",
                         "in": "query"
                     }
@@ -431,6 +426,12 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
@@ -673,7 +674,7 @@ const docTemplate = `{
         },
         "/api/refresh": {
             "post": {
-                "description": "Refresh an access token using session_id and refresh_token.",
+                "description": "Refresh an access token using refresh_token_id and refresh_token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -797,7 +798,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Session ID",
+                        "description": "Refresh Token ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -939,14 +940,6 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_handlers.LogoutRequest": {
-            "type": "object",
-            "properties": {
-                "session_id": {
-                    "type": "string"
-                }
-            }
-        },
         "internal_handlers.MemberResponse": {
             "type": "object",
             "properties": {
@@ -1040,7 +1033,7 @@ const docTemplate = `{
                 "refresh_token": {
                     "type": "string"
                 },
-                "session_id": {
+                "refresh_token_id": {
                     "type": "string"
                 }
             }
