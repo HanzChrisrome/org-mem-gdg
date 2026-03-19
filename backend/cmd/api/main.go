@@ -32,13 +32,13 @@ import (
 func main() {
 	cfg := config.LoadConfig()
 
-	conn := database.NewConnection(cfg.DatabaseURL)
-	defer conn.Close(context.Background())
+	pool := database.NewConnection(cfg.DatabaseURL)
+	defer pool.Close()
 
 	// Composition Root - Wired for future handler injection
-	userRepo := repositories.NewPostgresUserRepository(conn)
-	execRepo := repositories.NewPostgresExecutiveRepository(conn)
-	sessionRepo := repositories.NewPostgresSessionRepository(conn)
+	userRepo := repositories.NewPostgresUserRepository(pool)
+	execRepo := repositories.NewPostgresExecutiveRepository(pool)
+	sessionRepo := repositories.NewPostgresSessionRepository(pool)
 	hasher := utils.NewBcryptHasher(cfg.BcryptCost)
 	validator := utils.NewPasswordValidator(cfg.MinPassLen)
 	jwtManager := utils.NewHMACJWTManager(cfg.JWTSecret, cfg.JWTIssuer, cfg.AccessTokenTTLMinutes)
@@ -50,12 +50,21 @@ func main() {
 	var version string
 	startupCtx, cancelStartup := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelStartup()
-	err := conn.QueryRow(startupCtx, "SELECT version()").Scan(&version)
+	err := pool.QueryRow(startupCtx, "SELECT version()").Scan(&version)
 	if err != nil {
 		log.Fatalf("Query failed: %v", err)
 	}
 
 	log.Println("Connected to:", version)
+	
+	// Optional: Pool stats logging
+	go func() {
+		ticker := time.NewTicker(30 * time.Second)
+		for range ticker.C {
+			s := pool.Stat()
+			log.Printf("[DB Pool] Total: %d, Acquired: %d, Idle: %d", s.TotalConns(), s.AcquiredConns(), s.IdleConns())
+		}
+	}()
 
 	router := gin.Default()
 

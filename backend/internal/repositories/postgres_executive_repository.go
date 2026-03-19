@@ -9,14 +9,15 @@ import (
 
 	"github.com/HanzChrisrome/org-man-app/internal/config"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type PostgresExecutiveRepository struct {
-	conn *pgx.Conn
+	pool *pgxpool.Pool
 }
 
-func NewPostgresExecutiveRepository(conn *pgx.Conn) *PostgresExecutiveRepository {
-	return &PostgresExecutiveRepository{conn: conn}
+func NewPostgresExecutiveRepository(pool *pgxpool.Pool) *PostgresExecutiveRepository {
+	return &PostgresExecutiveRepository{pool: pool}
 }
 
 func (r *PostgresExecutiveRepository) GetByID(ctx context.Context, id string) (*config.Executive, error) {
@@ -25,7 +26,7 @@ func (r *PostgresExecutiveRepository) GetByID(ctx context.Context, id string) (*
 
 	exec := &config.Executive{}
 	var roleID sql.NullInt64
-	err := r.conn.QueryRow(ctx, query, id).Scan(
+	err := r.pool.QueryRow(ctx, query, id).Scan(
 		&exec.ID, &exec.Name, &exec.Email, &exec.StudentID, &roleID, &exec.PasswordHash, &exec.CreatedAt, &exec.LastUpdated,
 	)
 
@@ -51,7 +52,7 @@ func (r *PostgresExecutiveRepository) GetByEmail(ctx context.Context, email stri
 
 	exec := &config.Executive{}
 	var roleID sql.NullInt64
-	err := r.conn.QueryRow(ctx, query, email).Scan(
+	err := r.pool.QueryRow(ctx, query, email).Scan(
 		&exec.ID, &exec.Name, &exec.Email, &exec.StudentID, &roleID, &exec.PasswordHash, &exec.CreatedAt, &exec.LastUpdated,
 	)
 
@@ -77,7 +78,7 @@ func (r *PostgresExecutiveRepository) GetByStudentID(ctx context.Context, studen
 
 	exec := &config.Executive{}
 	var roleID sql.NullInt64
-	err := r.conn.QueryRow(ctx, query, studentID).Scan(
+	err := r.pool.QueryRow(ctx, query, studentID).Scan(
 		&exec.ID, &exec.Name, &exec.Email, &exec.StudentID, &roleID, &exec.PasswordHash, &exec.CreatedAt, &exec.LastUpdated,
 	)
 
@@ -100,7 +101,7 @@ func (r *PostgresExecutiveRepository) GetByStudentID(ctx context.Context, studen
 func (r *PostgresExecutiveRepository) Exists(ctx context.Context, email, studentID string) (bool, error) {
 	query := `SELECT EXISTS(SELECT 1 FROM executives WHERE email = $1 OR student_id = $2)`
 	var exists bool
-	err := r.conn.QueryRow(ctx, query, email, studentID).Scan(&exists)
+	err := r.pool.QueryRow(ctx, query, email, studentID).Scan(&exists)
 	if err != nil {
 		return false, fmt.Errorf("failed to check executive existence: %w", err)
 	}
@@ -122,7 +123,7 @@ func (r *PostgresExecutiveRepository) Create(ctx context.Context, exec *config.E
 		roleIDValue = exec.RoleID
 	}
 
-	err := r.conn.QueryRow(ctx, query, exec.Name, exec.Email, exec.StudentID, roleIDValue, exec.PasswordHash, exec.CreatedAt, exec.LastUpdated).Scan(&exec.ID)
+	err := r.pool.QueryRow(ctx, query, exec.Name, exec.Email, exec.StudentID, roleIDValue, exec.PasswordHash, exec.CreatedAt, exec.LastUpdated).Scan(&exec.ID)
 	if err != nil {
 		return fmt.Errorf("failed to create executive: %w", err)
 	}
@@ -134,7 +135,7 @@ func (r *PostgresExecutiveRepository) List(ctx context.Context) ([]config.Execut
 	query := `SELECT executive_id, name, email, student_id, role_id, password_hash, created_at, last_updated
 	          FROM executives ORDER BY created_at DESC`
 
-	rows, err := r.conn.Query(ctx, query)
+	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list executives: %w", err)
 	}
@@ -180,7 +181,7 @@ func (r *PostgresExecutiveRepository) Update(ctx context.Context, exec *config.E
 		roleIDValue = exec.RoleID
 	}
 
-	result, err := r.conn.Exec(ctx, query, exec.ID, exec.Name, exec.Email, exec.StudentID, roleIDValue, exec.PasswordHash, exec.LastUpdated)
+	result, err := r.pool.Exec(ctx, query, exec.ID, exec.Name, exec.Email, exec.StudentID, roleIDValue, exec.PasswordHash, exec.LastUpdated)
 	if err != nil {
 		return fmt.Errorf("failed to update executive: %w", err)
 	}
@@ -195,7 +196,7 @@ func (r *PostgresExecutiveRepository) Update(ctx context.Context, exec *config.E
 func (r *PostgresExecutiveRepository) Delete(ctx context.Context, id string) error {
 	query := `DELETE FROM executives WHERE executive_id = $1`
 
-	result, err := r.conn.Exec(ctx, query, id)
+	result, err := r.pool.Exec(ctx, query, id)
 	if err != nil {
 		return fmt.Errorf("failed to delete executive: %w", err)
 	}
