@@ -106,22 +106,27 @@ func (h *AuthHandler) Login(c *gin.Context) {
 func (h *AuthHandler) Refresh(c *gin.Context) {
 	var req RefreshRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("[AuthHandler] Refresh: JSON binding error: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return
 	}
 
 	refreshTokenID, refreshTokenSecret := normalizeRefreshInput(req.RefreshTokenID, req.RefreshToken)
 	if refreshTokenID == "" || refreshTokenSecret == "" {
+		log.Printf("[AuthHandler] Refresh: missing refresh credentials. ID: '%s', Secret: [REDACTED]", req.RefreshTokenID)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "refresh_token_id and refresh_token are required"})
 		return
 	}
 
+	log.Printf("[AuthHandler] Refresh: attempting refresh for ID: %s", refreshTokenID)
 	tokenPair, err := h.authService.RefreshAccessToken(c.Request.Context(), refreshTokenID, refreshTokenSecret)
 	if err != nil {
+		log.Printf("[AuthHandler] Refresh: service error for ID %s: %v", refreshTokenID, err)
 		handleAuthError(c, err)
 		return
 	}
 
+	log.Printf("[AuthHandler] Refresh: successful for ID: %s", refreshTokenID)
 	c.JSON(http.StatusOK, gin.H{
 		"token": tokenPair,
 	})
@@ -129,35 +134,62 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 
 // Logout godoc
 // @Summary Logout
-// @Description Revoke an active session.
+// @Description Revoke an active session. Accepts Bearer access token OR explicit refresh token credentials for logout when access token is expired.
 // @Tags Auth
 // @Accept json
 // @Produce json
 // @Security BearerAuth
+// @Param request body RefreshRequest false "Refresh payload (optional, used if bearer token is expired/missing)"
 // @Success 200 {object} MessageResponse
 // @Failure 401 {object} ErrorResponse
 // @Failure 404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /api/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
+	// 1. Try Bearer Access Token (standard flow via middleware context)
 	refreshTokenID, exists := c.Get("refresh_token_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "session context missing"})
+	if exists {
+		idStr, ok := refreshTokenID.(string)
+		if ok && idStr != "" {
+			if err := h.authService.Logout(c.Request.Context(), idStr); err != nil {
+				handleAuthError(c, err)
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{"message": "logged out via access token"})
+			return
+		}
+	}
+
+	// 2. Fallback: try explicit refresh credentials (non-bearer flow or expired access token)
+	var req RefreshRequest
+	if err := c.ShouldBindJSON(&req); err == nil {
+		id, secret := normalizeRefreshInput(req.RefreshTokenID, req.RefreshToken)
+		if id != "" && secret != "" {
+			if err := h.authService.LogoutWithRefreshToken(c.Request.Context(), id, secret); err != nil {
+				// Don't return 401 if we haven't checked for Bearer at all,
+				// but here if we are in fallback, we should just report the error.
+				handleAuthError(c, err)
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{"message": "logged out via refresh token"})
+			return
+		}
+	}
+
+	// 3. Last chance: Check if there was an Auth header that failed middleware (and thus didn't set context)
+	// Actually, the middleware Aborts the request, so we would only reach here if:
+	// - No header was provided (Middleware skipped)
+	// - OR Refresh fallback failed
+
+	if c.GetHeader("Authorization") != "" {
+		// If they provided a header but they are here, it means the middleware rejected it (401)
+		// but since we registered this outside the 'protected' group to allow refresh logout,
+		// the middleware might NOT have run yet or failed.
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired access token"})
 		return
 	}
 
-	idStr, ok := refreshTokenID.(string)
-	if !ok || idStr == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid session context"})
-		return
-	}
-
-	if err := h.authService.Logout(c.Request.Context(), idStr); err != nil {
-		handleAuthError(c, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "logged out"})
+	c.JSON(http.StatusUnauthorized, gin.H{"error": "session context missing or invalid credentials for logout"})
 }
 
 // RevokeSession godoc

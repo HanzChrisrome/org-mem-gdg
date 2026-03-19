@@ -16,12 +16,12 @@ func Register(router *gin.Engine, healthHandler *handlers.HealthHandler, authHan
 		api.POST("/register", authHandler.Register)
 		api.POST("/login", authHandler.Login)
 		api.POST("/refresh", authHandler.Refresh)
+		api.POST("/logout", authHandler.Logout) // Handles both Bearer and non-Bearer cases internally
 
 		// Protected routes
 		protected := api.Group("")
 		protected.Use(middleware.Auth(jwtManager, sessionRepo))
 		{
-			protected.POST("/logout", authHandler.Logout)
 			protected.POST("/sessions/:id/revoke", authHandler.RevokeSession)
 
 			// Member management (Executives only)
