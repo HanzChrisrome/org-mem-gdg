@@ -102,7 +102,7 @@ func TestAuthService_FullFlow(t *testing.T) {
 	hasher := utils.NewBcryptHasher(10)
 	validator := utils.NewPasswordValidator(8)
 	jwtManager := utils.NewHMACJWTManager("test-secret", "test-issuer", 15)
-	sessionManager := utils.NewDefaultSessionManager(168)
+	sessionManager := utils.NewDefaultSessionManager(1, 24)
 
 	service := services.NewAuthService(userRepo, execRepo, sessionRepo, hasher, validator, jwtManager, sessionManager)
 
@@ -206,5 +206,34 @@ func TestAuthService_FullFlow(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "executive", ownerType)
 		assert.IsType(t, &config.Executive{}, resExec)
+	})
+
+	t.Run("Logout Test Cases", func(t *testing.T) {
+		refreshTokenID := "test-sid"
+		refreshTokenSecret := "test-secret"
+		revokedAt := mock.AnythingOfType("time.Time")
+
+		// 1. Standard logout
+		sessionRepo.On("RevokeByRefreshTokenID", ctx, refreshTokenID, revokedAt).Return(nil).Once()
+		err := service.Logout(ctx, refreshTokenID)
+		assert.NoError(t, err)
+
+		// 2. Refresh token logout
+		session := &config.Session{
+			RefreshTokenID:   refreshTokenID,
+			RefreshTokenHash: utils.HashToken(refreshTokenSecret),
+			ExpiresAt:        time.Now().Add(1 * time.Hour),
+		}
+		sessionRepo.On("GetByRefreshTokenID", ctx, refreshTokenID).Return(session, nil).Once()
+		sessionRepo.On("RevokeByRefreshTokenID", ctx, refreshTokenID, revokedAt).Return(nil).Once()
+
+		err = service.LogoutWithRefreshToken(ctx, refreshTokenID, refreshTokenSecret)
+		assert.NoError(t, err)
+
+		// 3. Refresh token logout - Invalid secret
+		sessionRepo.On("GetByRefreshTokenID", ctx, refreshTokenID).Return(session, nil).Once()
+		err = service.LogoutWithRefreshToken(ctx, refreshTokenID, "wrong-secret")
+		assert.Error(t, err)
+		assert.Equal(t, config.ErrInvalidToken, err)
 	})
 }

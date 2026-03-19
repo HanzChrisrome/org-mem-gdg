@@ -13,18 +13,35 @@ import (
 type SessionManager interface {
 	CreateSession(ownerID, ownerType, refreshTokenID, refreshToken, userAgent, ip string) (*config.Session, error)
 	ValidateSession(session *config.Session, refreshToken string) error
+	GetRefreshTTL() time.Duration
+	GetMaxSessionTTL() time.Duration
 	RevokeSession(session *config.Session)
 }
 
 type DefaultSessionManager struct {
-	refreshTTL time.Duration
+	refreshTTL    time.Duration
+	maxSessionTTL time.Duration
 }
 
-func NewDefaultSessionManager(ttlMinutes int) *DefaultSessionManager {
-	if ttlMinutes <= 0 {
-		ttlMinutes = 1
+func NewDefaultSessionManager(ttlHours, maxTTLHours int) *DefaultSessionManager {
+	if ttlHours <= 0 {
+		ttlHours = 1
 	}
-	return &DefaultSessionManager{refreshTTL: time.Duration(ttlMinutes) * time.Minute}
+	if maxTTLHours <= 0 {
+		maxTTLHours = 24
+	}
+	return &DefaultSessionManager{
+		refreshTTL:    time.Duration(ttlHours) * time.Hour,
+		maxSessionTTL: time.Duration(maxTTLHours) * time.Hour,
+	}
+}
+
+func (m *DefaultSessionManager) GetRefreshTTL() time.Duration {
+	return m.refreshTTL
+}
+
+func (m *DefaultSessionManager) GetMaxSessionTTL() time.Duration {
+	return m.maxSessionTTL
 }
 
 func (m *DefaultSessionManager) CreateSession(ownerID, ownerType, refreshTokenID, refreshToken, userAgent, ip string) (*config.Session, error) {

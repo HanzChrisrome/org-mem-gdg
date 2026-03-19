@@ -42,7 +42,7 @@ func main() {
 	hasher := utils.NewBcryptHasher(cfg.BcryptCost)
 	validator := utils.NewPasswordValidator(cfg.MinPassLen)
 	jwtManager := utils.NewHMACJWTManager(cfg.JWTSecret, cfg.JWTIssuer, cfg.AccessTokenTTLMinutes)
-	sessionManager := utils.NewDefaultSessionManager(cfg.RefreshTokenTTLHours)
+	sessionManager := utils.NewDefaultSessionManager(cfg.RefreshTokenTTLHours, cfg.MaxSessionTTLHours)
 	authService := services.NewAuthService(userRepo, execRepo, sessionRepo, hasher, validator, jwtManager, sessionManager)
 	memberService := services.NewMemberService(userRepo, hasher, validator)
 	executiveService := services.NewExecutiveService(execRepo, hasher, validator)

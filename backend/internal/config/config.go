@@ -133,6 +133,7 @@ type Config struct {
 	JWTIssuer             string
 	AccessTokenTTLMinutes int
 	RefreshTokenTTLHours  int
+	MaxSessionTTLHours    int
 	EnablePayloadTrace    bool
 	TraceRequestBody      bool
 	TraceResponseBody     bool
@@ -218,6 +219,14 @@ func LoadConfig() *Config {
 		}
 	}
 
+	maxSessionTTLStr := os.Getenv("MAX_SESSION_TTL_HOURS")
+	maxSessionTTL := 24
+	if maxSessionTTLStr != "" {
+		if value, err := strconv.Atoi(maxSessionTTLStr); err == nil {
+			maxSessionTTL = value
+		}
+	}
+
 	traceMaxBodyBytesStr := os.Getenv("TRACE_MAX_BODY_BYTES")
 	traceMaxBodyBytes := 8192
 	if traceMaxBodyBytesStr != "" {
@@ -261,6 +270,7 @@ func LoadConfig() *Config {
 		JWTIssuer:             jwtIssuer,
 		AccessTokenTTLMinutes: accessTTL,
 		RefreshTokenTTLHours:  refreshTTL,
+		MaxSessionTTLHours:    maxSessionTTL,
 		EnablePayloadTrace:    parseBoolWithDefault(os.Getenv("TRACE_ENABLED"), true),
 		TraceRequestBody:      parseBoolWithDefault(os.Getenv("TRACE_REQUEST_BODY"), true),
 		TraceResponseBody:     parseBoolWithDefault(os.Getenv("TRACE_RESPONSE_BODY"), true),
