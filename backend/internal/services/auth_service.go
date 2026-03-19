@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -149,16 +150,16 @@ func (s *AuthService) LoginWithToken(ctx context.Context, req config.LoginReques
 
 	session, err := s.sessionManager.CreateSession(userID, ownerType, refreshTokenID, refreshTokenSecret, userAgent, ip)
 	if err != nil {
-		return "", "", nil, fmt.Errorf("%w: session creation failed: %v", config.ErrInternal, err)
+		return "", "", nil, fmt.Errorf("%w: session creation validation failed: %v", config.ErrInternal, err)
 	}
 
 	if err := s.sessionRepo.Create(ctx, session); err != nil {
-		return "", "", nil, fmt.Errorf("%w: session persistence failed: %v", config.ErrInternal, err)
+		return "", "", nil, fmt.Errorf("%w: database session persistence failed: %v (user: %s, type: %s)", config.ErrInternal, err, userID, ownerType)
 	}
 
 	accessToken, expiresIn, err := s.jwtManager.GenerateAccessTokenWithSession(userID, session.RefreshTokenID, ownerType)
 	if err != nil {
-		return "", "", nil, fmt.Errorf("%w: access token generation failed: %v", config.ErrInternal, err)
+		return "", "", nil, fmt.Errorf("%w: JWT access token generation failed: %v", config.ErrInternal, err)
 	}
 
 	tokens := &config.TokenPair{
@@ -174,25 +175,37 @@ func (s *AuthService) LoginWithToken(ctx context.Context, req config.LoginReques
 func (s *AuthService) RefreshAccessToken(ctx context.Context, refreshTokenID, refreshTokenSecret string) (*config.TokenPair, error) {
 	session, err := s.sessionRepo.GetByRefreshTokenID(ctx, refreshTokenID)
 	if err != nil {
+		log.Printf("[AuthService] Refresh: session lookup error for %s: %v", refreshTokenID, err)
 		return nil, err
 	}
 
 	if err := s.sessionManager.ValidateSession(session, refreshTokenSecret); err != nil {
+		log.Printf("[AuthService] Refresh: validation failed for session %s: %v", refreshTokenID, err)
 		return nil, err
 	}
 
 	// 1. Generate new refresh token secret
 	newRefreshTokenSecret, err := generateRandomToken(32)
 	if err != nil {
+		log.Printf("[AuthService] Refresh: random token generation failed: %v", err)
 		return nil, fmt.Errorf("%w: refresh token generation failed: %v", config.ErrInternal, err)
 	}
 
 	// 2. Update session with new hash and extend expiry
 	session.RefreshTokenHash = utils.HashToken(newRefreshTokenSecret)
-	session.ExpiresAt = time.Now().UTC().Add(1 * time.Hour) // Extend by 1 hour
+
+	newExpiresAt := time.Now().UTC().Add(s.sessionManager.GetRefreshTTL())
+	maxExpiresAt := session.CreatedAt.Add(s.sessionManager.GetMaxSessionTTL())
+
+	if newExpiresAt.After(maxExpiresAt) {
+		newExpiresAt = maxExpiresAt
+	}
+
+	session.ExpiresAt = newExpiresAt
 
 	// 3. Persist update in repo
 	if err := s.sessionRepo.Update(ctx, session); err != nil {
+		log.Printf("[AuthService] Refresh: session update database error for %s: %v", refreshTokenID, err)
 		return nil, fmt.Errorf("%w: session update failed: %v", config.ErrInternal, err)
 	}
 
@@ -201,6 +214,7 @@ func (s *AuthService) RefreshAccessToken(ctx context.Context, refreshTokenID, re
 	case "member":
 		user, err := s.repo.GetByID(ctx, session.OwnerID)
 		if err != nil {
+			log.Printf("[AuthService] Refresh: member lookup error for user %s: %v", session.OwnerID, err)
 			if err == config.ErrUserNotFound {
 				return nil, config.ErrInvalidCredentials
 			}
@@ -210,6 +224,7 @@ func (s *AuthService) RefreshAccessToken(ctx context.Context, refreshTokenID, re
 	case "executive":
 		exec, err := s.execRepo.GetByID(ctx, session.OwnerID)
 		if err != nil {
+			log.Printf("[AuthService] Refresh: executive lookup error for user %s: %v", session.OwnerID, err)
 			if err == config.ErrUserNotFound {
 				return nil, config.ErrInvalidCredentials
 			}
@@ -217,11 +232,13 @@ func (s *AuthService) RefreshAccessToken(ctx context.Context, refreshTokenID, re
 		}
 		userID = exec.ID
 	default:
+		log.Printf("[AuthService] Refresh: unknown owner type: %s", session.OwnerType)
 		return nil, fmt.Errorf("unknown owner type: %s", session.OwnerType)
 	}
 
 	accessToken, expiresIn, err := s.jwtManager.GenerateAccessTokenWithSession(userID, session.RefreshTokenID, session.OwnerType)
 	if err != nil {
+		log.Printf("[AuthService] Refresh: access token generation failed: %v", err)
 		return nil, config.ErrInternal
 	}
 
@@ -236,6 +253,24 @@ func (s *AuthService) RefreshAccessToken(ctx context.Context, refreshTokenID, re
 func (s *AuthService) Logout(ctx context.Context, refreshTokenID string) error {
 	if refreshTokenID == "" {
 		return config.ErrInvalidInput
+	}
+
+	return s.sessionRepo.RevokeByRefreshTokenID(ctx, refreshTokenID, time.Now().UTC())
+}
+
+func (s *AuthService) LogoutWithRefreshToken(ctx context.Context, refreshTokenID, refreshTokenSecret string) error {
+	if refreshTokenID == "" || refreshTokenSecret == "" {
+		return config.ErrInvalidInput
+	}
+
+	session, err := s.sessionRepo.GetByRefreshTokenID(ctx, refreshTokenID)
+	if err != nil {
+		return err
+	}
+
+	// Validate secret matches hash to prevent unauthorized revocation of other sessions
+	if err := s.sessionManager.ValidateSession(session, refreshTokenSecret); err != nil {
+		return err
 	}
 
 	return s.sessionRepo.RevokeByRefreshTokenID(ctx, refreshTokenID, time.Now().UTC())

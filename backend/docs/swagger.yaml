@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  internal_handlers.CreateExecutiveRequestDoc:
+  handlers.CreateExecutiveRequestDoc:
     properties:
       email:
         type: string
@@ -9,8 +9,7 @@ definitions:
       password:
         type: string
       role_id:
-        format: uuid
-        type: string
+        type: integer
       student_id:
         type: string
     required:
@@ -19,12 +18,12 @@ definitions:
     - password
     - student_id
     type: object
-  internal_handlers.ErrorResponse:
+  handlers.ErrorResponse:
     properties:
       error:
         type: string
     type: object
-  internal_handlers.ExecutiveResponse:
+  handlers.ExecutiveResponse:
     properties:
       created_at:
         type: string
@@ -37,12 +36,11 @@ definitions:
       name:
         type: string
       role_id:
-        format: uuid
-        type: string
+        type: integer
       student_id:
         type: string
     type: object
-  internal_handlers.LoginRequestDoc:
+  handlers.LoginRequestDoc:
     properties:
       identifier:
         description: Email or StudentID
@@ -50,16 +48,16 @@ definitions:
       password:
         type: string
     type: object
-  internal_handlers.LoginResponse:
+  handlers.LoginResponse:
     properties:
       owner_type:
         type: string
       token:
-        $ref: '#/definitions/internal_handlers.TokenPairResponse'
+        $ref: '#/definitions/handlers.TokenPairResponse'
       user_id:
         type: string
     type: object
-  internal_handlers.MemberResponse:
+  handlers.MemberResponse:
     properties:
       contact_number:
         type: string
@@ -80,7 +78,7 @@ definitions:
       student_id:
         type: string
     type: object
-  internal_handlers.MemberWithPaymentResponse:
+  handlers.MemberWithPaymentResponse:
     properties:
       approver_name:
         type: string
@@ -97,7 +95,6 @@ definitions:
       latest_approval_date:
         type: string
       latest_payment_id:
-        format: uuid
         type: string
       latest_payment_status:
         type: string
@@ -112,24 +109,24 @@ definitions:
       student_id:
         type: string
     type: object
-  internal_handlers.MessageResponse:
+  handlers.MessageResponse:
     properties:
       message:
         type: string
     type: object
-  internal_handlers.RefreshRequest:
+  handlers.RefreshRequest:
     properties:
       refresh_token:
         type: string
       refresh_token_id:
         type: string
     type: object
-  internal_handlers.RefreshResponse:
+  handlers.RefreshResponse:
     properties:
       token:
-        $ref: '#/definitions/internal_handlers.TokenPairResponse'
+        $ref: '#/definitions/handlers.TokenPairResponse'
     type: object
-  internal_handlers.RegisterRequestDoc:
+  handlers.RegisterRequestDoc:
     properties:
       email:
         type: string
@@ -145,13 +142,13 @@ definitions:
     required:
     - source_dashboard
     type: object
-  internal_handlers.RegisterResponse:
+  handlers.RegisterResponse:
     properties:
       owner_type:
         type: string
       user: {}
     type: object
-  internal_handlers.TokenPairResponse:
+  handlers.TokenPairResponse:
     properties:
       access_token:
         type: string
@@ -162,7 +159,7 @@ definitions:
       token_type:
         type: string
     type: object
-  internal_handlers.UpdateExecutiveRequestDoc:
+  handlers.UpdateExecutiveRequestDoc:
     properties:
       email:
         type: string
@@ -171,12 +168,11 @@ definitions:
       password:
         type: string
       role_id:
-        format: uuid
-        type: string
+        type: integer
       student_id:
         type: string
     type: object
-  internal_handlers.UpdateMemberRequestDoc:
+  handlers.UpdateMemberRequestDoc:
     properties:
       contact_number:
         type: string
@@ -206,16 +202,16 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/internal_handlers.ExecutiveResponse'
+              $ref: '#/definitions/handlers.ExecutiveResponse'
             type: array
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: List executives (Executive only)
@@ -230,30 +226,30 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_handlers.CreateExecutiveRequestDoc'
+          $ref: '#/definitions/handlers.CreateExecutiveRequestDoc'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/internal_handlers.ExecutiveResponse'
+            $ref: '#/definitions/handlers.ExecutiveResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create executive (Executive only)
@@ -273,19 +269,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handlers.MessageResponse'
+            $ref: '#/definitions/handlers.MessageResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Delete executive (Executive only)
@@ -304,19 +300,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handlers.ExecutiveResponse'
+            $ref: '#/definitions/handlers.ExecutiveResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get executive detail (Executive only)
@@ -336,34 +332,34 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_handlers.UpdateExecutiveRequestDoc'
+          $ref: '#/definitions/handlers.UpdateExecutiveRequestDoc'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handlers.ExecutiveResponse'
+            $ref: '#/definitions/handlers.ExecutiveResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Update executive (Executive only)
@@ -381,26 +377,26 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_handlers.LoginRequestDoc'
+          $ref: '#/definitions/handlers.LoginRequestDoc'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handlers.LoginResponse'
+            $ref: '#/definitions/handlers.LoginResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
       summary: Login
       tags:
       - Auth
@@ -408,26 +404,33 @@ paths:
     post:
       consumes:
       - application/json
-      description: Revoke an active session.
+      description: Revoke an active session. Accepts Bearer access token OR explicit
+        refresh token credentials for logout when access token is expired.
+      parameters:
+      - description: Refresh payload (optional, used if bearer token is expired/missing)
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/handlers.RefreshRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handlers.MessageResponse'
+            $ref: '#/definitions/handlers.MessageResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Logout
@@ -453,20 +456,20 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/internal_handlers.MemberWithPaymentResponse'
+              $ref: '#/definitions/handlers.MemberWithPaymentResponse'
             type: array
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: List members with payment summary (Executive only)
@@ -481,30 +484,30 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_handlers.RegisterRequestDoc'
+          $ref: '#/definitions/handlers.RegisterRequestDoc'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/internal_handlers.MemberResponse'
+            $ref: '#/definitions/handlers.MemberResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create member (Executive only)
@@ -524,19 +527,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handlers.MessageResponse'
+            $ref: '#/definitions/handlers.MessageResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Soft delete member (Executive only)
@@ -555,19 +558,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handlers.MemberResponse'
+            $ref: '#/definitions/handlers.MemberResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get member detail (Executive only)
@@ -587,30 +590,30 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_handlers.UpdateMemberRequestDoc'
+          $ref: '#/definitions/handlers.UpdateMemberRequestDoc'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handlers.MemberResponse'
+            $ref: '#/definitions/handlers.MemberResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Update member (Executive only)
@@ -627,30 +630,30 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_handlers.RefreshRequest'
+          $ref: '#/definitions/handlers.RefreshRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handlers.RefreshResponse'
+            $ref: '#/definitions/handlers.RefreshResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
       summary: Refresh access token
       tags:
       - Auth
@@ -665,26 +668,26 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_handlers.RegisterRequestDoc'
+          $ref: '#/definitions/handlers.RegisterRequestDoc'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/internal_handlers.RegisterResponse'
+            $ref: '#/definitions/handlers.RegisterResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
       summary: Register
       tags:
       - Auth
@@ -705,19 +708,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handlers.MessageResponse'
+            $ref: '#/definitions/handlers.MessageResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/handlers.ErrorResponse'
       summary: Revoke session
       tags:
       - Auth
