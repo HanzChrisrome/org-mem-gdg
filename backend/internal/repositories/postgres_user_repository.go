@@ -8,14 +8,15 @@ import (
 
 	"github.com/HanzChrisrome/org-man-app/internal/config"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type PostgresUserRepository struct {
-	conn *pgx.Conn
+	pool *pgxpool.Pool
 }
 
-func NewPostgresUserRepository(conn *pgx.Conn) *PostgresUserRepository {
-	return &PostgresUserRepository{conn: conn}
+func NewPostgresUserRepository(pool *pgxpool.Pool) *PostgresUserRepository {
+	return &PostgresUserRepository{pool: pool}
 }
 
 func (r *PostgresUserRepository) GetByID(ctx context.Context, id string) (*config.Member, error) {
@@ -24,7 +25,7 @@ func (r *PostgresUserRepository) GetByID(ctx context.Context, id string) (*confi
 
 	user := &config.Member{}
 	var contactNumber, course *string
-	err := r.conn.QueryRow(ctx, query, id).Scan(
+	err := r.pool.QueryRow(ctx, query, id).Scan(
 		&user.ID, &user.Name, &user.Email, &user.StudentID, &course, &contactNumber, &user.RegistrationStatus, &user.PasswordHash, &user.CreatedAt, &user.LastUpdated,
 	)
 
@@ -51,7 +52,7 @@ func (r *PostgresUserRepository) GetByEmail(ctx context.Context, email string) (
 
 	user := &config.Member{}
 	var contactNumber, course *string
-	err := r.conn.QueryRow(ctx, query, email).Scan(
+	err := r.pool.QueryRow(ctx, query, email).Scan(
 		&user.ID, &user.Name, &user.Email, &user.StudentID, &course, &contactNumber, &user.RegistrationStatus, &user.PasswordHash, &user.CreatedAt, &user.LastUpdated,
 	)
 
@@ -78,7 +79,7 @@ func (r *PostgresUserRepository) GetByStudentID(ctx context.Context, studentID s
 
 	user := &config.Member{}
 	var contactNumber, course *string
-	err := r.conn.QueryRow(ctx, query, studentID).Scan(
+	err := r.pool.QueryRow(ctx, query, studentID).Scan(
 		&user.ID, &user.Name, &user.Email, &user.StudentID, &course, &contactNumber, &user.RegistrationStatus, &user.PasswordHash, &user.CreatedAt, &user.LastUpdated,
 	)
 
@@ -110,7 +111,7 @@ func (r *PostgresUserRepository) Create(ctx context.Context, user *config.Member
 		user.RegistrationStatus = config.StatusPending
 	}
 
-	err := r.conn.QueryRow(ctx, query, user.Name, user.Email, user.StudentID, user.Course, user.ContactNumber, user.RegistrationStatus, user.PasswordHash, user.CreatedAt, user.LastUpdated).Scan(&user.ID)
+	err := r.pool.QueryRow(ctx, query, user.Name, user.Email, user.StudentID, user.Course, user.ContactNumber, user.RegistrationStatus, user.PasswordHash, user.CreatedAt, user.LastUpdated).Scan(&user.ID)
 
 	if err != nil {
 		return fmt.Errorf("failed to create user: %w", err)
@@ -125,7 +126,7 @@ func (r *PostgresUserRepository) Update(ctx context.Context, user *config.Member
 	now := time.Now()
 	user.LastUpdated = now
 
-	_, err := r.conn.Exec(ctx, query, user.ID, user.Name, user.Email, user.StudentID, user.Course, user.ContactNumber, user.RegistrationStatus, user.LastUpdated)
+	_, err := r.pool.Exec(ctx, query, user.ID, user.Name, user.Email, user.StudentID, user.Course, user.ContactNumber, user.RegistrationStatus, user.LastUpdated)
 	if err != nil {
 		return fmt.Errorf("failed to update user: %w", err)
 	}
@@ -136,7 +137,7 @@ func (r *PostgresUserRepository) Update(ctx context.Context, user *config.Member
 func (r *PostgresUserRepository) Delete(ctx context.Context, id string) error {
 	query := `UPDATE members SET registration_status = $2, last_updated = $3 WHERE member_id = $1`
 
-	_, err := r.conn.Exec(ctx, query, id, config.StatusInactive, time.Now())
+	_, err := r.pool.Exec(ctx, query, id, config.StatusInactive, time.Now())
 	if err != nil {
 		return fmt.Errorf("failed to soft delete user: %w", err)
 	}
@@ -154,7 +155,7 @@ func (r *PostgresUserRepository) List(ctx context.Context, searchTerm string, st
 		ORDER BY m.created_at DESC
 	`
 
-	rows, err := r.conn.Query(ctx, query, searchTerm, status)
+	rows, err := r.pool.Query(ctx, query, searchTerm, status)
 	if err != nil {
 		println("DEBUG [PostgresUserRepository List Query Error]:", err.Error())
 		return nil, fmt.Errorf("failed to list members: %w", err)
@@ -181,13 +182,17 @@ func (r *PostgresUserRepository) List(ctx context.Context, searchTerm string, st
 		members = append(members, m)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed to iterate member rows: %w", err)
+	}
+
 	return members, nil
 }
 
 func (r *PostgresUserRepository) Exists(ctx context.Context, email, studentID string) (bool, error) {
 	query := `SELECT EXISTS(SELECT 1 FROM members WHERE email = $1 OR student_id = $2)`
 	var exists bool
-	err := r.conn.QueryRow(ctx, query, email, studentID).Scan(&exists)
+	err := r.pool.QueryRow(ctx, query, email, studentID).Scan(&exists)
 	if err != nil {
 		return false, fmt.Errorf("failed to check user existence: %w", err)
 	}
