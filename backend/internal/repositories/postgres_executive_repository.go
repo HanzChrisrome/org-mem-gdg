@@ -25,7 +25,7 @@ func (r *PostgresExecutiveRepository) GetByID(ctx context.Context, id string) (*
 	          FROM executives WHERE executive_id = $1`
 
 	exec := &config.Executive{}
-	var roleID sql.NullInt64
+	var roleID sql.NullString
 	err := r.pool.QueryRow(ctx, query, id).Scan(
 		&exec.ID, &exec.Name, &exec.Email, &exec.StudentID, &roleID, &exec.PasswordHash, &exec.CreatedAt, &exec.LastUpdated,
 	)
@@ -38,9 +38,9 @@ func (r *PostgresExecutiveRepository) GetByID(ctx context.Context, id string) (*
 	}
 
 	if roleID.Valid {
-		exec.RoleID = int(roleID.Int64)
+		exec.RoleID = &roleID.String
 	} else {
-		exec.RoleID = 0
+		exec.RoleID = nil
 	}
 
 	return exec, nil
@@ -51,7 +51,7 @@ func (r *PostgresExecutiveRepository) GetByEmail(ctx context.Context, email stri
 	          FROM executives WHERE email = $1`
 
 	exec := &config.Executive{}
-	var roleID sql.NullInt64
+	var roleID sql.NullString
 	err := r.pool.QueryRow(ctx, query, email).Scan(
 		&exec.ID, &exec.Name, &exec.Email, &exec.StudentID, &roleID, &exec.PasswordHash, &exec.CreatedAt, &exec.LastUpdated,
 	)
@@ -64,9 +64,9 @@ func (r *PostgresExecutiveRepository) GetByEmail(ctx context.Context, email stri
 	}
 
 	if roleID.Valid {
-		exec.RoleID = int(roleID.Int64)
+		exec.RoleID = &roleID.String
 	} else {
-		exec.RoleID = 0
+		exec.RoleID = nil
 	}
 
 	return exec, nil
@@ -77,7 +77,7 @@ func (r *PostgresExecutiveRepository) GetByStudentID(ctx context.Context, studen
 	          FROM executives WHERE student_id = $1`
 
 	exec := &config.Executive{}
-	var roleID sql.NullInt64
+	var roleID sql.NullString
 	err := r.pool.QueryRow(ctx, query, studentID).Scan(
 		&exec.ID, &exec.Name, &exec.Email, &exec.StudentID, &roleID, &exec.PasswordHash, &exec.CreatedAt, &exec.LastUpdated,
 	)
@@ -90,9 +90,9 @@ func (r *PostgresExecutiveRepository) GetByStudentID(ctx context.Context, studen
 	}
 
 	if roleID.Valid {
-		exec.RoleID = int(roleID.Int64)
+		exec.RoleID = &roleID.String
 	} else {
-		exec.RoleID = 0
+		exec.RoleID = nil
 	}
 
 	return exec, nil
@@ -116,14 +116,7 @@ func (r *PostgresExecutiveRepository) Create(ctx context.Context, exec *config.E
 	exec.CreatedAt = now
 	exec.LastUpdated = now
 
-	var roleIDValue interface{}
-	if exec.RoleID == 0 {
-		roleIDValue = nil
-	} else {
-		roleIDValue = exec.RoleID
-	}
-
-	err := r.pool.QueryRow(ctx, query, exec.Name, exec.Email, exec.StudentID, roleIDValue, exec.PasswordHash, exec.CreatedAt, exec.LastUpdated).Scan(&exec.ID)
+	err := r.pool.QueryRow(ctx, query, exec.Name, exec.Email, exec.StudentID, exec.RoleID, exec.PasswordHash, exec.CreatedAt, exec.LastUpdated).Scan(&exec.ID)
 	if err != nil {
 		return fmt.Errorf("failed to create executive: %w", err)
 	}
@@ -144,7 +137,7 @@ func (r *PostgresExecutiveRepository) List(ctx context.Context) ([]config.Execut
 	executives := make([]config.Executive, 0)
 	for rows.Next() {
 		exec := config.Executive{}
-		var roleID sql.NullInt64
+		var roleID sql.NullString
 		err := rows.Scan(
 			&exec.ID, &exec.Name, &exec.Email, &exec.StudentID, &roleID, &exec.PasswordHash, &exec.CreatedAt, &exec.LastUpdated,
 		)
@@ -153,9 +146,9 @@ func (r *PostgresExecutiveRepository) List(ctx context.Context) ([]config.Execut
 		}
 
 		if roleID.Valid {
-			exec.RoleID = int(roleID.Int64)
+			exec.RoleID = &roleID.String
 		} else {
-			exec.RoleID = 0
+			exec.RoleID = nil
 		}
 
 		executives = append(executives, exec)
@@ -174,14 +167,7 @@ func (r *PostgresExecutiveRepository) Update(ctx context.Context, exec *config.E
 	now := time.Now()
 	exec.LastUpdated = now
 
-	var roleIDValue interface{}
-	if exec.RoleID == 0 {
-		roleIDValue = nil
-	} else {
-		roleIDValue = exec.RoleID
-	}
-
-	result, err := r.pool.Exec(ctx, query, exec.ID, exec.Name, exec.Email, exec.StudentID, roleIDValue, exec.PasswordHash, exec.LastUpdated)
+	result, err := r.pool.Exec(ctx, query, exec.ID, exec.Name, exec.Email, exec.StudentID, exec.RoleID, exec.PasswordHash, exec.LastUpdated)
 	if err != nil {
 		return fmt.Errorf("failed to update executive: %w", err)
 	}

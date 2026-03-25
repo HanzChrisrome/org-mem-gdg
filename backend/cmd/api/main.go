@@ -56,7 +56,25 @@ func main() {
 	}
 
 	log.Println("Connected to:", version)
-	
+
+	// Pre-flight check: Verify critical auth columns exist to prevent 500/401 logic failures
+	preflightCtx, cancelPreflight := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelPreflight()
+	var exists bool
+	preflightQuery := `
+		SELECT EXISTS (
+			SELECT 1 FROM information_schema.columns
+			WHERE table_name = 'executives' AND column_name = 'password_hash'
+		) AND EXISTS (
+			SELECT 1 FROM information_schema.columns
+			WHERE table_name = 'sessions' AND column_name = 'refresh_token_id'
+		)`
+	err = pool.QueryRow(preflightCtx, preflightQuery).Scan(&exists)
+	if err != nil || !exists {
+		log.Fatal("Startup pre-flight check failed: required database columns (executives.password_hash or sessions.refresh_token_id) are missing. Check migrations.")
+	}
+	log.Println("Database pre-flight check passed.")
+
 	// Optional: Pool stats logging
 	go func() {
 		ticker := time.NewTicker(30 * time.Second)

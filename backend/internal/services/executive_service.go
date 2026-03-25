@@ -48,7 +48,7 @@ func (s *ExecutiveService) CreateExecutive(ctx context.Context, req config.Creat
 		PasswordHash: hPassword,
 	}
 	if req.RoleID != nil {
-		exec.RoleID = *req.RoleID
+		exec.RoleID = req.RoleID
 	}
 
 	if err := s.repo.Create(ctx, exec); err != nil {
@@ -101,7 +101,7 @@ func (s *ExecutiveService) UpdateExecutive(ctx context.Context, id string, req c
 		exec.PasswordHash = hPassword
 	}
 	if req.RoleID != nil {
-		exec.RoleID = *req.RoleID
+		exec.RoleID = req.RoleID
 	}
 
 	if err := s.repo.Update(ctx, exec); err != nil {
