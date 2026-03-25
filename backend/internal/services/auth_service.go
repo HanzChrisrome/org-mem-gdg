@@ -119,13 +119,21 @@ func (s *AuthService) Login(ctx context.Context, req config.LoginRequest) (strin
 
 	if err != nil {
 		if err == config.ErrUserNotFound {
+			log.Printf("[AuthService] Login: executive not found for identifier: %s", req.Identifier)
 			return "", "", "", config.ErrInvalidCredentials
 		}
+		log.Printf("[AuthService] Login: executive repository error for %s: %v", req.Identifier, err)
 		return "", "", "", config.ErrInternal
 	}
 
 	// Verify login hash
+	if exec.PasswordHash == "" {
+		log.Printf("[AuthService] Login: executive %s has empty password hash", exec.ID)
+		return "", "", "", config.ErrInvalidCredentials
+	}
+
 	if err := s.hasher.VerifyPassword(req.Password, exec.PasswordHash); err != nil {
+		log.Printf("[AuthService] Login: password verification failed for executive %s: %v", exec.ID, err)
 		return "", "", "", config.ErrInvalidCredentials
 	}
 

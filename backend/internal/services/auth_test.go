@@ -160,6 +160,27 @@ func TestAuthService_FullFlow(t *testing.T) {
 		assert.NotEmpty(t, newTokens.AccessToken)
 	})
 
+	t.Run("Executive Login Failure Cases", func(t *testing.T) {
+		ctx := context.Background()
+
+		// 1. Executive not found
+		execRepo.On("GetByEmail", ctx, "nonexistent@example.com").Return((*config.Executive)(nil), config.ErrUserNotFound).Once()
+		_, _, _, err := service.Login(ctx, config.LoginRequest{Identifier: "nonexistent@example.com", Password: "any-password"})
+		assert.Equal(t, config.ErrInvalidCredentials, err)
+
+		// 2. Empty hash
+		execEmptyHash := &config.Executive{ID: "exec-empty", PasswordHash: ""}
+		execRepo.On("GetByEmail", ctx, "empty@example.com").Return(execEmptyHash, nil).Once()
+		_, _, _, err = service.Login(ctx, config.LoginRequest{Identifier: "empty@example.com", Password: "password123"})
+		assert.Equal(t, config.ErrInvalidCredentials, err)
+
+		// 3. Malformed hash
+		execBadHash := &config.Executive{ID: "exec-bad", PasswordHash: "not-a-bcrypt-hash"}
+		execRepo.On("GetByEmail", ctx, "badhash@example.com").Return(execBadHash, nil).Once()
+		_, _, _, err = service.Login(ctx, config.LoginRequest{Identifier: "badhash@example.com", Password: "password123"})
+		assert.Equal(t, config.ErrInvalidCredentials, err)
+	})
+
 	t.Run("Member Login Rejection Test", func(t *testing.T) {
 		execRepo.On("GetByEmail", ctx, "member@example.com").Return((*config.Executive)(nil), config.ErrUserNotFound)
 
