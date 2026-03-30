@@ -11,7 +11,6 @@ import { type LoginFormData, loginSchema } from "@/types/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Lock, MailIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group";
 
@@ -27,26 +26,17 @@ export function LoginForm({
     resolver: zodResolver(loginSchema),
   });
   const { setLoggedIn } = useAuth();
-  const navigate = useNavigate();
 
   const onSubmit = async (data: LoginFormData) => {
-    try {
-      await login({
-        identifier: data.identifier,
-        password: data.password,
-      });
+    const success = await login({
+      identifier: data.identifier,
+      password: data.password,
+    });
 
-      setLoggedIn(true);
-      toast.success("Login successful!");
-      navigate("/dashboard");
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Login failed. Check credentials.";
-      toast.error(message);
-      console.error("Login error:", error);
-    }
+    if (!success) return;
+
+    setLoggedIn(true);
+    toast.success("Login successful!");
   };
 
   return (

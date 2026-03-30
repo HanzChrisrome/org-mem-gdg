@@ -14,11 +14,9 @@ import {
   BarChartIcon,
   BuildingIcon,
   CheckCircleIcon,
-  ClockIcon,
   CogIcon,
   LayoutDashboardIcon,
   LogsIcon,
-  TrendingUpIcon,
   UserPlusIcon,
 } from "lucide-react";
 
@@ -27,49 +25,38 @@ import { NavUser } from "./nav-user";
 
 const data = {
   user: {
-    name: "shadcn",
+    name: "Iorilovesme",
     email: "m@example.com",
     avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
     {
       title: "Overview",
-      url: "#",
+      url: "/dashboard",
       icon: <LayoutDashboardIcon />,
-    },
-    {
-      title: "Quick Stats",
-      url: "#",
-      icon: <TrendingUpIcon />,
-    },
-    {
-      title: "Recent Activity",
-      url: "#",
-      icon: <BarChartIcon />,
+      activeMatch: "exact" as const,
     },
   ],
   members: [
     {
       name: "Member List",
-      url: "#",
+      url: "/members",
       icon: <BarChartIcon />,
+      activeMatch: "exact" as const,
     },
     {
       name: "Add New Member",
-      url: "#",
+      url: "/members/new",
       icon: <UserPlusIcon />,
+      activeMatch: "exact" as const,
     },
   ],
   payments: [
     {
       name: "Payment Approval",
-      url: "#",
+      url: "/payments/approvals",
       icon: <CheckCircleIcon />,
-    },
-    {
-      name: "Payment History",
-      url: "#",
-      icon: <ClockIcon />,
+      activeMatch: "exact" as const,
     },
   ],
   others: [

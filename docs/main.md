@@ -23,15 +23,15 @@
 
 ## 2. Business Requirements
 
-| ID        | Business Requirement | Description                                                                                                                              |
-| :-------- | :------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
-| **BR-01** | Member Registration  | Users must be able to register through an online form. Registration source determines the entity type (Member or Executive).              |
-| **BR-02** | Member Management    | Executives must be able to add, view, update, and delete members.                                                                        |
-| **BR-03** | Payment Tracking     | Executives must be able to mark membership payments as paid manually.                                                                    |
-| **BR-03** | Event Management     | Executives must be able to create events, manage RSVPs, and track attendance.                                                            |
-| **BR-05** | Reporting            | The system must generate basic reports for member payments and event attendance.                                                         |
-| **BR-06** | Security             | The system must restrict access to executives through secure login.                                                                      |
-| **BR-07** | Search & Filter      | Executives should be able to search/filter members and events based on various criteria.                                                 |
+| ID        | Business Requirement | Description                                                                                                                  |
+| :-------- | :------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| **BR-01** | Member Registration  | Users must be able to register through an online form. Registration source determines the entity type (Member or Executive). |
+| **BR-02** | Member Management    | Executives must be able to add, view, update, and delete members.                                                            |
+| **BR-03** | Payment Tracking     | Executives must be able to mark membership payments as paid manually.                                                        |
+| **BR-03** | Event Management     | Executives must be able to create events, manage RSVPs, and track attendance.                                                |
+| **BR-05** | Reporting            | The system must generate basic reports for member payments and event attendance.                                             |
+| **BR-06** | Security             | The system must restrict access to executives through secure login.                                                          |
+| **BR-07** | Search & Filter      | Executives should be able to search/filter members and events based on various criteria.                                     |
 
 ## 3. Functional Requirements
 
@@ -153,7 +153,6 @@
 - **Payments:** payment_id, member_id (FK → Members.member_id), payment_proof_image, payment_status, submission_date, approval_date, approved_by (FK → Executives.executive_id)
 - **Audit Log:** audit_id, actor_id, actor_role, action, entity_type, entity_id, details, timestamp
 - **Sessions:** session_id, owner_id (FK -> Members.member_id OR Executives.executive_id), owner_type (member/executive), refresh_token_hash, user_agent, ip_address, expires_at, created_at, revoked_at
-
 
 ## 8. Technical Design
 

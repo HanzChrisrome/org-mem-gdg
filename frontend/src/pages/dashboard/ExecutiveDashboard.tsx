@@ -122,95 +122,55 @@ const recentActivities = [
   },
 ] as const;
 
-const recentPayments = [
-  {
-    member: "Alyssa Dela Cruz",
-    studentId: "2023-01452",
-    submitted: "Today, 8:30 AM",
-    status: "Pending",
-    action: "Review proof",
-  },
-  {
-    member: "Marco Sison",
-    studentId: "2022-00981",
-    submitted: "Today, 7:50 AM",
-    status: "Pending",
-    action: "Approve or reject",
-  },
-  {
-    member: "Janelle Reyes",
-    studentId: "2024-00117",
-    submitted: "Yesterday",
-    status: "Resubmitted",
-    action: "Validate replacement proof",
-  },
-  {
-    member: "Paolo Mendoza",
-    studentId: "2021-00344",
-    submitted: "Yesterday",
-    status: "Approved",
-    action: "Membership active",
-  },
-] as const;
-
-const auditItems = [
-  "Executive login and logout events",
-  "Member creation, updates, and deactivation",
-  "Payment approval and rejection decisions",
-  "Report exports for finance and membership review",
-] as const;
-
 export default function ExecutiveDashboard() {
   return (
     <DashboardLayout>
-      <section className="flex flex-col gap-6 py-4 md:py-6">
-        <div className="px-4 lg:px-6">
-          <Card className="border-none bg-linear-to-br from-primary to-primary/80 text-primary-foreground shadow-sm">
-            <CardHeader>
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge className="bg-primary-foreground/15 text-primary-foreground hover:bg-primary-foreground/15">
-                  GDG on Campus Operations
-                </Badge>
-                <Badge className="bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/10">
-                  Executive dashboard
-                </Badge>
-              </div>
-              <CardTitle className="text-3xl font-semibold tracking-tight text-primary-foreground pt-5">
-                Welcome back, keep member onboarding, payment approvals, and
-                reporting in one view.
-              </CardTitle>
-              <CardDescription className="text-primary-foreground/80">
-                This workspace is tailored for organization executives who need
-                to review registrations, validate payment proofs, monitor
-                membership health, and maintain clean audit trails.
-              </CardDescription>
-            </CardHeader>
-            <CardFooter className="mt-2 flex flex-col items-start justify-between gap-3 border-muted-foreground bg-transparent sm:flex-row sm:items-center">
-              <div className="text-sm text-primary-foreground/80">
-                18 payment submissions are waiting for action and 5 members need
-                resubmission follow-up.
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
-                >
-                  <Wallet /> Review payments
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="border-primary-foreground/25 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
-                >
-                  <UsersRound /> Add new member
-                </Button>
-              </div>
-            </CardFooter>
-          </Card>
-        </div>
+      <section className="space-y-4">
+        <Card className="border-none bg-linear-to-br from-primary to-primary/80 text-primary-foreground shadow-sm">
+          <CardHeader>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge className="bg-primary-foreground/15 text-primary-foreground hover:bg-primary-foreground/15">
+                GDG on Campus Operations
+              </Badge>
+              <Badge className="bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/10">
+                Executive dashboard
+              </Badge>
+            </div>
+            <CardTitle className="text-3xl font-semibold tracking-tight text-primary-foreground pt-5">
+              Welcome back, keep member onboarding, payment approvals, and
+              reporting in one view.
+            </CardTitle>
+            <CardDescription className="text-primary-foreground/80">
+              This workspace is tailored for organization executives who need to
+              review registrations, validate payment proofs, monitor membership
+              health, and maintain clean audit trails.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter className="mt-2 flex flex-col items-start justify-between gap-3 border-muted-foreground bg-transparent sm:flex-row sm:items-center">
+            <div className="text-sm text-primary-foreground/80">
+              18 payment submissions are waiting for action and 5 members need
+              resubmission follow-up.
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="secondary"
+                size="lg"
+                className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
+              >
+                <Wallet /> Review payments
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-primary-foreground/25 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+              >
+                <UsersRound /> Add new member
+              </Button>
+            </div>
+          </CardFooter>
+        </Card>
 
-        <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
           {overviewCards.map(({ title, value, detail, status, icon: Icon }) => (
             <Card
               key={title}
@@ -237,7 +197,7 @@ export default function ExecutiveDashboard() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @4xl/main:grid-cols-[1.4fr_1fr]">
+        <div className="grid grid-cols-1 gap-4 @4xl/main:grid-cols-[1.4fr_1fr]">
           <Card>
             <CardHeader>
               <div className="flex items-start justify-between gap-3">
